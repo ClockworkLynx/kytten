@@ -1,0 +1,101 @@
+{
+    "frame": {
+        "image": {
+            "src": "panel.png",
+            "stretch": [17, 17, 2, 2],
+            "padding": [10, 10, 17, 17]
+        }
+    },
+    "button": {
+        "image": {
+            "src": "button.png",
+            "stretch": [12, 12, 12, 12],
+            "padding": [12, 12, 12, 12]
+        },
+        "image-down": {
+            "src": "button-down.png",
+            "stretch": [12, 12, 12, 12],
+            "padding": [12, 12, 12, 12]
+        },
+        "image-highlight": {
+            "src": "button-highlight.png",
+            "stretch": [12, 12, 12, 12],
+            "padding": [12, 12, 12, 12]
+        }
+    },
+    "input": {
+        "image": {
+            "src": "input.png",
+            "stretch": [3, 3, 2, 2],
+            "padding": [3, 3, 2, 3]
+        },
+        "image-highlight": {
+            "src": "input-highlight.png",
+            "stretch": [0, 0, 8, 8],
+            "padding": [0, 0, 0, 0]
+        }
+    },
+    "hscrollbar": {
+        "image-bar": {
+            "src": "hscrollbar.png",
+            "region": [64, 0, 16, 16],
+            "stretch": [6, 0, 4, 16]
+        },
+        "image-left": {
+            "src": "hscrollbar.png",
+            "region": [0, 0, 16, 16]
+        },
+        "image-leftmax": {
+            "src": "hscrollbar.png",
+            "region": [48, 0, 16, 16]
+        },
+        "image-right": {
+            "src": "hscrollbar.png",
+            "region": [32, 0, 16, 16]
+        },
+        "image-rightmax": {
+            "src": "hscrollbar.png",
+            "region": [80, 0, 16, 16]
+        },
+        "image-space": {
+            "src": "hscrollbar.png",
+            "region": [16, 0, 16, 16],
+            "stretch": [0, 0, 16, 16]
+        }
+    },
+    "vscrollbar": {
+        "image-bar": {
+            "src": "vscrollbar.png",
+            "region": [0, 16, 16, 16],
+            "stretch": [0, 6, 16, 4]
+        },
+        "image-down": {
+            "src": "vscrollbar.png",
+            "region": [0, 48, 16, 16]
+        },
+        "image-downmax": {
+            "src": "vscrollbar.png",
+            "region": [0, 0, 16, 16]
+        },
+        "image-space": {
+            "src": "vscrollbar.png",
+            "region": [0, 64, 16, 16],
+            "stretch": [0, 0, 16, 16]
+        },
+        "image-up": {
+            "src": "vscrollbar.png",
+            "region": [0, 80, 16, 16]
+        },
+        "image-upmax": {
+            "src": "vscrollbar.png",
+            "region": [0, 32, 16, 16]
+        }
+    },
+    "menuoption": {
+        "image-highlight": {
+            "src": "input-highlight.png",
+            "stretch": [0, 0, 8, 8],
+            "padding": [0, 0, 0, 0]
+        }
+    }
+}

@@ -3,21 +3,19 @@
 
 # Test dialog using the Kytten GUI
 
-import os
+import copy
 import glob
+import os
 
 import pyglet
 # Disable error checking for increased performance
 pyglet.options['debug_gl'] = False
 from pyglet import gl
 
-from kytten import graphics
-from kytten import gui
-from kytten import layout
-from kytten import widget
+import kytten
 
 class Background:
-    """Selects one of many backgrounds to display behind the test dialog."""
+    """Selects one of several backgrounds to display behind the test dialog."""
 
     def __init__(self, loc=os.getcwd(), batch=None, group=None):
 	"""
@@ -120,39 +118,67 @@ if __name__ == '__main__':
 	window.dispatch_event('on_update', dt)
     pyglet.clock.schedule(update)
 
-    # Set up a background which changes based on left/right arrow keypresses
+    # Set up a background which changes when user hits left or right arrow
     background = Background(batch=batch, group=bg_group)
     window.push_handlers(background)
 
-    # Set up a test dialog
-    def on_select(dialog, menu, choice):
-	print "Selected %s" % choice
-    dialog = gui.Dialog(window=window, batch=batch, group=fg_group,
-			anchor=layout.ANCHOR_CENTER,
-			stylesheet=graphics.Stylesheet(color=(255, 235, 128)),
-			content=gui.Panel(
-			    layout.VerticalLayout([
-				widget.Text("Test Menu", bold=True),
-				widget.Menu("test-menu",
-				    ["option 1", "option 2", "option 3",
-				     "option 4", "option 5", "option 6",
-				     "option 7", "option 8", "option 9"],
-				    max_height=100,
-				    on_select=on_select),
-				layout.GridLayout([
-				    [widget.Text("Name"),
-				     widget.Input("name", "Lynx")],
-				    [widget.Text("Job"),
-				     widget.Input("job", "Cat")],
-				    [widget.Text("Sign"),
-				     widget.Input("sign",
-						   "Free to good home")]]),
-				layout.HorizontalLayout([
-				    widget.Button("Submit"),
-				    widget.Button("Cancel")]),
-			    ], align=layout.HALIGN_CENTER)
-			))
+    # Set up the test Theme
+    theme = kytten.Theme(os.getcwd(), override={
+	"gui_color": [255, 235, 128, 255],
+	"font_size": 18
+    })
+
+    # Set up a test Dialog
+    def on_select(text):
+	print "Selected: %s" % text
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.VerticalLayout([
+		kytten.Text("Select:"),
+		kytten.Spacer(0, 10),
+		kytten.Scrollable(
+		    kytten.Menu([
+			"Tastes great",
+			"Less filling",
+			"The lesser of two evils",
+			"Cthulhu in 2012",
+			"None of the above",
+		    ], align=kytten.HALIGN_LEFT, on_select=on_select),
+		height=100)
+	    ], align=kytten.HALIGN_LEFT),
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_TOP_LEFT,
+	theme=theme)
     window.push_handlers(dialog)
+
+    # Set up another test Dialog
+    theme2 = kytten.Theme(theme, override={
+	"gui_color": [0, 128, 255, 255],
+	"font_size": 12,
+    })
+    dialog2 = kytten.Dialog(
+	kytten.Frame(
+	    kytten.VerticalLayout([
+		kytten.HorizontalLayout([
+		    kytten.GridLayout([
+			[kytten.Text("Name"), kytten.Input("name", "Lynx")],
+			[kytten.Text("Job"), kytten.Input("job", "Cat")],
+			[kytten.Text("Hobby"),
+			 kytten.Input("hobby", "Programming")],
+		    ], anchor=kytten.ANCHOR_LEFT),
+		]),
+		kytten.HorizontalLayout([
+		    kytten.Button("Enter"),
+		    None, # translated to a spacer
+		    kytten.Button("Cancel")
+		]),
+	    ]),
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_BOTTOM_RIGHT,
+	theme=theme2)
+    window.push_handlers(dialog2)
 
     # Change this flag to run with profiling and dump top 20 cumulative times
     if True:
