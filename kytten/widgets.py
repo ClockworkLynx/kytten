@@ -212,6 +212,42 @@ class Block(Widget):
                 ('v2i', self._get_vertices()),
                 ('c4B', dialog.theme['gui_color'] * 4))
 
+class Graphic(Widget):
+    """
+    Lays out a graphic from the theme, i.e. part of a title bar.
+    """
+    def __init__(self, component, image_name, is_expandable=False):
+        Widget.__init__(self)
+        self.component = component
+        self.image_name = image_name
+        self.expandable=is_expandable
+        self.graphic = None
+
+    def delete(self):
+        if self.graphic is not None:
+            self.graphic.delete()
+            self.graphic = None
+
+    def expand(self, width, height):
+        if self.expandable:
+            self.width, self.height = width, height
+            self.graphic.update(self.x, self.y, self.width, self.height)
+
+    def is_expandable(self):
+        return self.expandable
+
+    def layout(self, x, y):
+        self.x, self.y = x, y
+        self.graphic.update(x, y, self.width, self.height)
+
+    def size(self, dialog):
+        if self.graphic is None:
+            template = dialog.theme[self.component][self.image_name]
+            self.graphic = template.generate(dialog.theme['gui_color'],
+                                             dialog.batch,
+                                             dialog.fg_group)
+        self.width, self.height = self.graphic.width, self.graphic.height
+
 class Button(Control):
     """
     A simple text-labeled button.
@@ -332,7 +368,7 @@ class Button(Control):
         self.width, self.height = self.button.get_needed_size(
             self.label.content_width, height)
 
-class Text(Widget):
+class Label(Widget):
     """A wrapper around a simple text label."""
     def __init__(self, text="", bold=False):
         Widget.__init__(self)
@@ -354,7 +390,7 @@ class Text(Widget):
     def size(self, dialog):
         if self.label is None:
             self.label = pyglet.text.Label(
-                self.text, bold=self.bold, color=dialog.theme['text_color'],
+                self.text, bold=self.bold, color=dialog.theme['gui_color'],
                 font_name=dialog.theme['font'],
                 font_size=dialog.theme['font_size'],
                 batch=dialog.batch, group=dialog.fg_group)
@@ -500,3 +536,85 @@ class Input(Control):
 
         self.width, self.height = self.field.get_needed_size(
             needed_width, needed_height)
+
+class Document(Widget):
+    """
+    Allows you to embed a document within the GUI, which can then be scrolled
+    using the Scrollable frame.
+
+    Example:
+    document = pyglet.text.decode_attributed(
+	'''{align "center"}{bold True}Kytten{bold False}{align "left"}{}
+Lorem ipsum dolor sit amet, consectetur adipisicing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+''')
+
+    # Set up a Dialog to scroll through the text
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.Scrollable(
+		kytten.Document(document, width=300),
+		height=100,
+	    ),
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_TOP_LEFT,
+	theme=theme)
+    window.push_handlers(dialog)
+    """
+    def __init__(self, document, width=1000, height=0):
+        Widget.__init__(self, width, height)
+        self.document = document
+        self.content = None
+        self.set_document_style = False
+
+    def _do_set_document_style(self, attr, value):
+        length = len(self.document.text)
+        runs = [(start, end, doc_value) for start, end, doc_value in
+                self.document.get_style_runs(attr).ranges(0, length)
+                if doc_value is not None]
+        if not runs:
+            terminator = len(self.document.text)
+        else:
+            terminator = runs[0][0]
+        self.document.set_style(0, terminator, {attr: value})
+
+    def delete(self):
+        if self.content is not None:
+            self.content.delete()
+            self.content = None
+
+    def do_set_document_style(self, dialog):
+        self.set_document_style = True
+
+        # Check the style runs to make sure we don't stamp on anything
+        # set by the user
+        self._do_set_document_style('color', dialog.theme['text_color'])
+        self._do_set_document_style('font_name', dialog.theme['font'])
+        self._do_set_document_style('font_size', dialog.theme['font_size'])
+
+    def expand(self, width, height):
+        self.height = height
+        self.width = width
+        self.content.width = width
+        self.content.height = self.content.content_height
+
+    def is_expandable(self):
+        return True
+
+    def layout(self, x, y):
+        self.content.begin_update()
+        self.content.x = x
+        self.content.y = y
+        self.content.end_update()
+
+    def size(self, dialog):
+        if not self.set_document_style:
+            self.do_set_document_style(dialog)
+        if self.content is None:
+            self.content = pyglet.text.layout.IncrementalTextLayout(
+                self.document,
+                self.width,
+                0, # height is arbitrary
+                multiline=True, batch=dialog.batch, group=dialog.fg_group)
+        self.width = self.content.width
+        self.height = self.content.height = self.content.content_height

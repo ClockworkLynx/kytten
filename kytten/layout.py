@@ -4,7 +4,7 @@
 import pyglet
 from pyglet import gl
 
-from widgets import Widget, Control, Text
+from widgets import Widget, Control, Graphic, Label
 
 # GUI layout constants
 
@@ -102,7 +102,7 @@ class Wrapper(Widget):
     Wrapper is simply a wrapper around a widget.  While the default
     Wrapper does nothing more interesting, subclasses might decorate the
     widget in some fashion, i.e. Panel might place the widget onto a
-    panel, or ScrollablePane might provide scrollbars to let the widget
+    panel, or Scrollable might provide scrollbars to let the widget
     be panned about within its display area.
     """
     def __init__(self, content=None):
@@ -163,12 +163,14 @@ class Frame(Wrapper):
     """
     Frame draws an untitled frame which encloses the dialog's content.
     """
-    def __init__(self, content=None):
+    def __init__(self, content=None, component="frame", image_name="image"):
         """
         Creates a new Frame surrounding a widget or layout.
         """
         Wrapper.__init__(self, content)
         self.frame = None
+        self.component = component
+        self.image_name = image_name
 
     def delete(self):
         """
@@ -204,10 +206,10 @@ class Frame(Wrapper):
         """
         Wrapper.size(self, dialog)
         if self.frame is None:
-            frame_template = dialog.theme['frame']['image']
-            self.frame = frame_template.generate(dialog.theme['gui_color'],
-                                                 dialog.batch,
-                                                 dialog.panel_group)
+            template = dialog.theme[self.component][self.image_name]
+            self.frame = template.generate(dialog.theme['gui_color'],
+                                           dialog.batch,
+                                           dialog.panel_group)
         self.width, self.height = self.frame.get_needed_size(
             self.content.width, self.content.height)
 
@@ -672,6 +674,8 @@ class HScrollbar(Control):
         self.pos = 0.0
         self.bar_width = 0.5
         self.is_dragging = False
+        self.is_scrolling = False
+        self.scroll_delta = 0
 
     def _get_left_region(self):
         """
@@ -794,6 +798,19 @@ class HScrollbar(Control):
             self.is_dragging = True
             self.delete()
             dialog.set_needs_layout()
+        else:
+            left_x, left_y, left_width, left_height = self._get_left_region()
+            if x >= left_x and x < left_x + left_width and \
+               y >= left_y and y < left_y + left_height:
+                self.is_scrolling = True
+                self.scroll_delta = -1
+            else:
+                right_x, right_y, right_width, right_height = \
+                       self._get_right_region()
+                if x >= right_x and x < right_x + right_width and \
+                   y >= right_y and y < right_y + right_height:
+                    self.is_scrolling = True
+                    self.scroll_delta = 1
 
     def on_mouse_release(self, dialog, x, y, button, modifiers):
         """
@@ -806,6 +823,19 @@ class HScrollbar(Control):
         @param modifiers Modifiers to apply to button
         """
         self.is_dragging = False
+        self.is_scrolling = False
+        self.scroll_delta = 0
+
+    def on_update(self, dialog, dt):
+        """
+        When scrolling, we increment our position each update
+
+        @param dialog Dialog in which we're contained
+        @param dt Time delta, in seconds
+        """
+        if self.is_scrolling:
+            self.drag_bar(self.scroll_delta * 50.0 * dt, 0)
+            dialog.set_needs_layout()
 
     def set(self, width, max_width):
         """
@@ -923,6 +953,17 @@ class VScrollbar(HScrollbar):
         _, _, bar_width, bar_height = self._get_bar_region()
         self.pos = min(max(self.pos - float(dy) / space_height, 0.0),
                        1.0 - float(bar_height)/space_height)
+
+    def on_update(self, dialog, dt):
+        """
+        When scrolling, we increment our position each update
+
+        @param dialog Dialog in which we're contained
+        @param dt Time delta, in seconds
+        """
+        if self.is_scrolling:
+            self.drag_bar(0, -self.scroll_delta * 50.0 * dt)
+            dialog.set_needs_layout()
 
     def set(self, height, max_height):
         """Sets the new height of the scrollbar, and the height of
@@ -1406,3 +1447,14 @@ class Menu(VerticalLayout):
 
         if self.on_select is not None:
             self.on_select(text)
+
+class TitleFrame(VerticalLayout):
+    def __init__(self, title, content):
+        VerticalLayout.__init__(self, content=[
+                HorizontalLayout([
+                    Graphic("titlebar", "image-left", is_expandable=True),
+                    Frame(Label(title), "titlebar", "image-center"),
+                    Graphic("titlebar", "image-right", is_expandable=True),
+                ], align=VALIGN_BOTTOM, padding=0),
+                Frame(content, "titlebar", "image-frame"),
+            ], padding=0)

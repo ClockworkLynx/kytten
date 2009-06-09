@@ -44,8 +44,9 @@ from layout import ANCHOR_TOP_LEFT, ANCHOR_TOP, ANCHOR_TOP_RIGHT, \
 
 # GUI public classes
 
-from widgets import Widget, Block, Button, Text, Input
+from widgets import Widget, Block, Button, Label, Input, Document
 from layout import GridLayout, HorizontalLayout, VerticalLayout, \
-                   FreeLayout, Spacer, Frame, Scrollable, Menu
+                   FreeLayout, Spacer, Frame, Scrollable, Menu, \
+                   TitleFrame
 from theme import Theme
 from dialog import Dialog

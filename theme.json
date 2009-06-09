@@ -6,6 +6,29 @@
             "padding": [10, 10, 17, 17]
         }
     },
+    "titlebar": {
+        "image-left": {
+            "src": "titlebar.png",
+            "region": [0, 0, 32, 16],
+            "stretch": [10, 8, 18, 1]
+        },
+        "image-center": {
+            "src": "titlebar.png",
+            "region": [32, 0, 16, 16],
+            "stretch": [6, 6, 4, 6],
+            "padding": [8, 8, 8, 8]
+        },
+        "image-right": {
+            "src": "titlebar.png",
+            "region": [48, 0, 32, 16],
+            "stretch": [4, 8, 18, 1]
+        },
+        "image-frame": {
+            "src": "titleframe.png",
+            "stretch": [10, 10, 12, 4],
+            "padding": [10, 10, 4, 10]
+        }
+    },
     "button": {
         "image": {
             "src": "button.png",

@@ -128,24 +128,27 @@ if __name__ == '__main__':
 	"font_size": 18
     })
 
+    # Test document
+    document = pyglet.text.decode_attributed("""
+With {bold True}kytten{bold False}, you can harness the power of
+{underline (255, 255, 255, 255)}pyglet{underline None}'s documents in a
+scrollable window!
+
+{font_name "Courier New"}Change fonts{font_name Lucia Grande},
+{italic True}italicize your text,{italic False} and more!
+
+{align "center"}Center yourself!{align "left"}{}
+{align "right"}Or go right.{align "left"}
+
+{color (128, 64, 255, 255)}
+Colors too, no problem.
+{color (255, 255, 255, 255}
+""")
+
     # Set up a test Dialog
-    def on_select(text):
-	print "Selected: %s" % text
     dialog = kytten.Dialog(
-	kytten.Frame(
-	    kytten.VerticalLayout([
-		kytten.Text("Select:"),
-		kytten.Spacer(0, 10),
-		kytten.Scrollable(
-		    kytten.Menu([
-			"Tastes great",
-			"Less filling",
-			"The lesser of two evils",
-			"Cthulhu in 2012",
-			"None of the above",
-		    ], align=kytten.HALIGN_LEFT, on_select=on_select),
-		height=100)
-	    ], align=kytten.HALIGN_LEFT),
+	kytten.TitleFrame("Kytten Test",
+	    kytten.Scrollable(kytten.Document(document, width=300), height=200)
 	),
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_TOP_LEFT,
@@ -162,9 +165,9 @@ if __name__ == '__main__':
 	    kytten.VerticalLayout([
 		kytten.HorizontalLayout([
 		    kytten.GridLayout([
-			[kytten.Text("Name"), kytten.Input("name", "Lynx")],
-			[kytten.Text("Job"), kytten.Input("job", "Cat")],
-			[kytten.Text("Hobby"),
+			[kytten.Label("Name"), kytten.Input("name", "Lynx")],
+			[kytten.Label("Job"), kytten.Input("job", "Cat")],
+			[kytten.Label("Hobby"),
 			 kytten.Input("hobby", "Programming")],
 		    ], anchor=kytten.ANCHOR_LEFT),
 		]),

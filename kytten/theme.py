@@ -27,16 +27,18 @@ DEFAULT_THEME_SETTINGS = {
 }
 
 class TextureGraphicElementTemplate:
-    def __init__(self, texture):
-	self.width, self.height = texture.width, texture.height
+    def __init__(self, texture, width=None, height=None):
+	self.width = width or texture.width
+	self.height = height or texture.height
 	self.texture = texture
 
     def generate(self, color, batch, group):
 	return TextureGraphicElement(self.texture, color, batch, group)
 
 class FrameTextureGraphicElementTemplate:
-    def __init__(self, texture, stretch, padding):
-	self.width, self.height = texture.width, texture.height
+    def __init__(self, texture, stretch, padding, width=None, height=None):
+	self.width = width or texture.width
+	self.height = height or texture.height
 	self.texture = texture
 	self.stretch_texture = texture.get_region(*stretch).get_texture()
 	x, y, width, height = stretch
@@ -194,6 +196,7 @@ class Theme(dict):
 		for k2, v2 in v.iteritems():
 		    if k2.startswith('image'):
 			if isinstance(v2, dict):
+			    width = height = None
 			    if v2.has_key('region'):
 				x, y, width, height = v2['region']
 				texture = self._get_texture_region(
@@ -204,10 +207,11 @@ class Theme(dict):
 				temp[k2] = FrameTextureGraphicElementTemplate(
 				    texture,
 				    v2['stretch'],
-				    v2.get('padding', v2['stretch']))
+				    v2.get('padding', v2['stretch']),
+				width=width, height=height)
 			    else:
 				temp[k2] = TextureGraphicElementTemplate(
-				    texture)
+				    texture, width=width, height=height)
 			else:
 			    temp[k2] = TextureGraphicElementTemplate(
 				self._get_texture(v2))
