@@ -23,7 +23,7 @@ DEFAULT_THEME_SETTINGS = {
     "text_color": [255, 255, 255, 255],
     "inverse_color": [0, 0, 0, 255],
     "gui_color": [255, 255, 255, 255],
-    "highlight_color": [255, 255, 255, 64],
+    "highlight_color": [255, 255, 255, 128],
 }
 
 class TextureGraphicElementTemplate:

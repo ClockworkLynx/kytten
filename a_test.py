@@ -125,30 +125,21 @@ if __name__ == '__main__':
     # Set up the test Theme
     theme = kytten.Theme(os.getcwd(), override={
 	"gui_color": [255, 235, 128, 255],
-	"font_size": 18
+	"font_size": 12
     })
-
-    # Test document
-    document = pyglet.text.decode_attributed("""
-With {bold True}kytten{bold False}, you can harness the power of
-{underline (255, 255, 255, 255)}pyglet{underline None}'s documents in a
-scrollable window!
-
-{font_name "Courier New"}Change fonts{font_name Lucia Grande},
-{italic True}italicize your text,{italic False} and more!
-
-{align "center"}Center yourself!{align "left"}{}
-{align "right"}Or go right.{align "left"}
-
-{color (128, 64, 255, 255)}
-Colors too, no problem.
-{color (255, 255, 255, 255}
-""")
 
     # Set up a test Dialog
     dialog = kytten.Dialog(
 	kytten.TitleFrame("Kytten Test",
-	    kytten.Scrollable(kytten.Document(document, width=300), height=200)
+	    kytten.Scrollable(
+		kytten.VerticalLayout([
+		    kytten.Label("Test Menu"),
+		    kytten.Menu(["Test",
+				 "Longer test",
+				 "Very long test name",
+				 "Another test",
+				 "That's enough testing"]),
+		]), height=100),
 	),
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_TOP_LEFT,

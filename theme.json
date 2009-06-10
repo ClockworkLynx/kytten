@@ -14,8 +14,8 @@
         },
         "image-center": {
             "src": "titlebar.png",
-            "region": [32, 0, 16, 16],
-            "stretch": [6, 6, 4, 6],
+            "region": [33, 0, 14, 16],
+            "stretch": [5, 6, 4, 4],
             "padding": [8, 8, 8, 8]
         },
         "image-right": {
