@@ -6,22 +6,26 @@ from pyglet import gl
 
 try:
     import json
+    json_load = json.loads
 except ImportError:
     try:
 	import simplejson as json
+	json_load = json.loads
     except ImportError:
 	import sys
-	print """
-kytten requires json - please upgrade to Python 2.6 or install simplejson
-"""
-	sys.exit(0)
+	print >>sys.stderr, \
+	      "Warning: using 'safe_eval' to process json files, " \
+	      "please upgrade to Python 2.6 or install simplejson"
+	import safe_eval
+	def json_load(expr):
+	    # strip carriage returns
+	    return safe_eval.safe_eval(''.join(str(expr).split('\r')))
 
 DEFAULT_THEME_SETTINGS = {
     "font": "Lucida Grande",
     "font_size": 12,
     "font_size_small": 10,
     "text_color": [255, 255, 255, 255],
-    "inverse_color": [0, 0, 0, 255],
     "gui_color": [255, 255, 255, 255],
     "highlight_color": [255, 255, 255, 128],
 }
@@ -153,7 +157,40 @@ class FrameTextureGraphicElement:
 	if self.vertex_list is not None:
 	    self.vertex_list.vertices = self._get_vertices()
 
-class Theme(dict):
+class ScopedDict(dict):
+    def __init__(self, arg={}, parent=None):
+	self.parent = parent
+	for k, v in arg.iteritems():
+	    if isinstance(v, dict):
+		self[k] = ScopedDict(v, self)
+	    else:
+		self[k] = v
+
+    def get(self, key, default=None):
+	if self.has_key(key):
+	    return dict.get(self, key)
+	elif self.parent:
+	    return self.parent.get(key, default)
+	else:
+	    return default
+
+    def __getitem__(self, key):
+	if key is None:
+	    return self
+	elif self.has_key(key):
+	    return dict.__getitem__(self, key)
+	elif self.parent:
+	    return self.parent.__getitem__(key)
+	else:
+	    raise KeyError(key)
+
+    def __setitem__(self, key, value):
+	if isinstance(value, dict):
+	    dict.__setitem__(self, key, ScopedDict(value, self))
+	else:
+	    dict.__setitem__(self, key, value)
+
+class Theme(ScopedDict):
     """
     Theme is a dictionary-based class that converts any elements beginning
     with 'image' into a GraphicElementTemplate.  This allows us to specify
@@ -172,11 +209,12 @@ class Theme(dict):
 	@param override Replace some dictionary entries with these
 	@param default Initial dictionary entries before handling input
 	"""
-	self.update(default)
+	ScopedDict.__init__(self, default, None)
 
 	if isinstance(arg, Theme):
 	    self.textures = arg.textures
-	    self.update(arg)
+	    for k, v in arg.iteritems():
+		self.__setitem__(k, v)
 	    self.update(override)
 	    return
 
@@ -185,14 +223,14 @@ class Theme(dict):
 	else:
 	    loader = pyglet.resource.Loader(path=arg)
 	    theme_file = loader.file('theme.json')
-	    input = json.loads(theme_file.read())
+	    input = json_load(theme_file.read())
 	    theme_file.close()
 
 	self.textures = {}
 
 	for k, v in input.iteritems():
 	    if isinstance(v, dict):
-		temp = {}
+		temp = ScopedDict(parent=self)
 		for k2, v2 in v.iteritems():
 		    if k2.startswith('image'):
 			if isinstance(v2, dict):

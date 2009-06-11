@@ -102,20 +102,22 @@ class Button(Control):
         if self.button is None:
             if self.is_pressed:
                 self.button = dialog.theme['button']['image-down'].generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.bg_group)
+                    dialog.theme['button']['gui_color'],
+                    dialog.batch, dialog.bg_group)
             else:
                 self.button = dialog.theme['button']['image'].generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.bg_group)
+                    dialog.theme['button']['gui_color'],
+                    dialog.batch, dialog.bg_group)
         if self.highlight is None and self.is_highlight:
             self.highlight = dialog.theme['button']['image-highlight'].\
-                generate(dialog.theme['highlight_color'],
+                generate(dialog.theme['button']['highlight_color'],
                          dialog.batch,
                          dialog.bg_group)
         if self.label is None:
             self.label = pyglet.text.Label(self.text,
-                font_name=dialog.theme['font'],
-                font_size=dialog.theme['font_size'],
-                color=dialog.theme['gui_color'],
+                font_name=dialog.theme['button']['font'],
+                font_size=dialog.theme['button']['font_size'],
+                color=dialog.theme['button']['gui_color'],
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent

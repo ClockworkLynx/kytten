@@ -132,7 +132,8 @@ class TitleFrame(VerticalLayout):
         VerticalLayout.__init__(self, content=[
                 HorizontalLayout([
                     Graphic("titlebar", "image-left", is_expandable=True),
-                    Frame(Label(title), "titlebar", "image-center"),
+                    Frame(Label(title, component="titlebar"),
+                          component="titlebar", image_name="image-center"),
                     Graphic("titlebar", "image-right", is_expandable=True),
                 ], align=VALIGN_BOTTOM, padding=0),
                 Frame(content, "titlebar", "image-frame"),

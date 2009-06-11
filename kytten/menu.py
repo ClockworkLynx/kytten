@@ -70,14 +70,16 @@ class MenuOption(Control):
         if self.label is None:
             if self.is_selected:
                 self.label = pyglet.text.Label(self.text,
-                    color=dialog.theme['inverse_color'],
+                    color=dialog.theme['menuoption']
+                                      ['selection']
+                                      ['text_color'],
                     font_name=dialog.theme['font'],
                     font_size=dialog.theme['font_size'],
                     batch=dialog.batch,
                     group=dialog.fg_group)
             else:
                 self.label = pyglet.text.Label(self.text,
-                    color=dialog.theme['text_color'],
+                    color=dialog.theme['menuoption']['text_color'],
                     font_name=dialog.theme['font'],
                     font_size=dialog.theme['font_size'],
                     batch=dialog.batch,
@@ -90,14 +92,16 @@ class MenuOption(Control):
             if self.is_selected:
                 self.background = \
                     dialog.theme['menuoption']['image-highlight'].\
-                        generate(dialog.theme['text_color'],
+                        generate(dialog.theme['menuoption']
+                                             ['selection']
+                                             ['gui_color'],
                                  dialog.batch,
                                  dialog.bg_group)
         if self.highlight is None:
             if self.is_highlight:
                 self.highlight = \
                     dialog.theme['menuoption']['image-highlight'].\
-                        generate(dialog.theme['highlight_color'],
+                        generate(dialog.theme['menuoption']['highlight_color'],
                                  dialog.batch,
                                  dialog.highlight_group)
 

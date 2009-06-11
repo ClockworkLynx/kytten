@@ -27,7 +27,8 @@
             "src": "titleframe.png",
             "stretch": [10, 10, 12, 4],
             "padding": [10, 10, 4, 10]
-        }
+        },
+        "font_size": 14
     },
     "button": {
         "image": {
@@ -119,6 +120,10 @@
             "src": "input-highlight.png",
             "stretch": [0, 0, 8, 8],
             "padding": [0, 0, 0, 0]
+        },
+        "selection": {
+            "text_color": [0, 0, 0, 255],
+            "gui_color": [255, 255, 255, 255]
         }
     }
 }

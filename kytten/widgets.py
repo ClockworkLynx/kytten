@@ -289,17 +289,19 @@ class Graphic(Widget):
     def size(self, dialog):
         if self.graphic is None:
             template = dialog.theme[self.component][self.image_name]
-            self.graphic = template.generate(dialog.theme['gui_color'],
-                                             dialog.batch,
-                                             dialog.fg_group)
+            self.graphic = template.generate(
+                dialog.theme[self.component]['gui_color'],
+                dialog.batch,
+                dialog.fg_group)
         self.width, self.height = self.graphic.width, self.graphic.height
 
 class Label(Widget):
     """A wrapper around a simple text label."""
-    def __init__(self, text="", bold=False):
+    def __init__(self, text="", bold=False, component=None):
         Widget.__init__(self)
         self.text = text
         self.bold = bold
+        self.component = component
         self.label = None
 
     def delete(self):
@@ -316,9 +318,10 @@ class Label(Widget):
     def size(self, dialog):
         if self.label is None:
             self.label = pyglet.text.Label(
-                self.text, bold=self.bold, color=dialog.theme['gui_color'],
-                font_name=dialog.theme['font'],
-                font_size=dialog.theme['font_size'],
+                self.text, bold=self.bold,
+                color=dialog.theme[self.component]['gui_color'],
+                font_name=dialog.theme[self.component]['font'],
+                font_size=dialog.theme[self.component]['font_size'],
                 batch=dialog.batch, group=dialog.fg_group)
             font = self.label.document.get_font()
             self.width = self.label.content_width
