@@ -79,6 +79,19 @@ class Widget:
         """
         return False
 
+    def is_focusable(self):
+        """
+        Return true if the widget can be tabbed to and accepts keyboard
+        input
+        """
+        return False
+
+    def is_input(self):
+        """
+        Returns true if the widget accepts an input and can return a value
+        """
+        return False
+
     def layout(self, x, y):
         """
         Assigns a new location to this widget.

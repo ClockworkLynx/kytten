@@ -131,6 +131,12 @@ class Menu(VerticalLayout):
         VerticalLayout.__init__(self, menu_options,
                                 align=align, padding=padding)
 
+    def get_value(self):
+        return self.selected
+
+    def is_input(self):
+        return True
+
     def select(self, dialog, text):
         assert text in self.options
         if self.selected is not None:

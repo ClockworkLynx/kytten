@@ -143,6 +143,10 @@ class FrameTextureGraphicElement:
 	return (self.x + left, self.y + bottom,
 		self.width - left - right, self.height - top - bottom)
 
+    def get_content_size(self, width, height):
+	left, right, top, bottom = self.padding
+	return width - left - right, height - top - bottom
+
     def get_needed_size(self, content_width, content_height):
 	left, right, top, bottom = self.padding
 	return (max(content_width + left + right, self.outer_texture.width),

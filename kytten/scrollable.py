@@ -72,6 +72,8 @@ class Scrollable(Wrapper, DialogEventManager):
         self.content_height = 0
         self.content_x = 0
         self.content_y = 0
+        self.hscrollbar_height = 0
+        self.vscrollbar_width = 0
 
         # We emulate some aspects of Dialog here.  We cannot just inherit
         # from Dialog because pyglet event handling won't allow keyword
@@ -111,6 +113,25 @@ class Scrollable(Wrapper, DialogEventManager):
             self.vscrollbar = None
         self.root_group = None
 
+    def expand(self, width, height):
+        if self.content.is_expandable():
+            content_width = max(self.max_width or
+                                width-self.vscrollbar_width,
+                                self.content.width)
+            content_height = max(self.max_height or
+                                 height-self.hscrollbar_height,
+                                 self.content.height)
+            self.content.expand(content_width, content_height)
+            if self.vscrollbar is not None:
+                self.content_width = width - self.vscrollbar_width
+            else:
+                self.content_width = width
+            if self.hscrollbar is not None:
+                self.content_height = height - self.hscrollbar_height
+            else:
+                self.hscrollbar_height = height
+        self.width, self.height = width, height
+
     def hit_test(self, x, y):
         """
         We only intercept events for the content region, not for
@@ -119,6 +140,9 @@ class Scrollable(Wrapper, DialogEventManager):
         return x >= self.content_x and y >= self.content_y and \
                x < self.content_x + self.content_width and \
                y < self.content_y + self.content_height
+
+    def is_expandable(self):
+        return True
 
     def layout(self, x, y):
         """
@@ -192,6 +216,11 @@ class Scrollable(Wrapper, DialogEventManager):
         if self.is_fixed_size:
             self.width, self.height = self.max_width, self.max_height
 
+        self.hscrollbar_height = \
+            dialog.theme['hscrollbar']['image-left'].height
+        self.vscrollbar_width = \
+            dialog.theme['vscrollbar']['image-up'].width
+
         if self.root_group is None: # do we need to re-clone Dialog?
             self.theme = dialog.theme
             self.batch = dialog.batch
@@ -220,8 +249,7 @@ class Scrollable(Wrapper, DialogEventManager):
                     dialog.theme['hscrollbar']['image-right'],
                     dialog.theme['hscrollbar']['image-leftmax'],
                     dialog.theme['hscrollbar']['image-rightmax'])
-            self.hscrollbar.size(dialog)
-            self.hscrollbar.set(self.max_width, self.width)
+
         if self.always_show_scrollbars or \
            (self.max_height and self.height > self.max_height):
             if self.vscrollbar is None:
@@ -233,6 +261,12 @@ class Scrollable(Wrapper, DialogEventManager):
                     dialog.theme['vscrollbar']['image-down'],
                     dialog.theme['vscrollbar']['image-upmax'],
                     dialog.theme['vscrollbar']['image-downmax'])
+
+        if self.hscrollbar is not None:
+            self.hscrollbar.size(dialog)
+            self.hscrollbar.set(self.max_width, self.width)
+
+        if self.vscrollbar is not None:
             self.vscrollbar.size(dialog)
             self.vscrollbar.set(self.max_height, self.height)
 
@@ -240,6 +274,7 @@ class Scrollable(Wrapper, DialogEventManager):
         self.content_width = self.width
         if self.vscrollbar is not None:
             self.width += self.vscrollbar.width
+
         self.height = min(self.max_height or self.height, self.height)
         self.content_height = self.height
         if self.hscrollbar is not None:

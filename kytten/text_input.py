@@ -37,6 +37,15 @@ class Input(Control):
     def get_text(self):
         return self.document.text
 
+    def get_value(self):
+        return self.get_text()
+
+    def is_focusable(self):
+        return True
+
+    def is_input(self):
+        return True
+
     def layout(self, x, y):
         self.x, self.y = x, y
         self.field.update(x, y, self.width, self.height)

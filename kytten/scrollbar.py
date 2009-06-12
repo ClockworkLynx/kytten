@@ -134,10 +134,14 @@ class HScrollbar(Control):
         @param y Y coordinate of lower left corner
         """
         self.x, self.y = x, y
-        self.left.update(*self._get_left_region())
-        self.right.update(*self._get_right_region())
-        self.space.update(*self._get_space_region())
-        self.bar.update(*self._get_bar_region())
+        if self.left is not None:
+            self.left.update(*self._get_left_region())
+        if self.right is not None:
+            self.right.update(*self._get_right_region())
+        if self.space is not None:
+            self.space.update(*self._get_space_region())
+        if self.bar is not None:
+            self.bar.update(*self._get_bar_region())
 
     def on_mouse_drag(self, dialog, x, y, dx, dy, buttons, modifiers):
         """
@@ -241,7 +245,8 @@ class HScrollbar(Control):
             max_bar_x = space_width - bar_width
             x -= bar_width
             self.pos = float(min(max_bar_x, x - space_x)) / space_width
-        self.bar.update(*self._get_bar_region())
+        if self.bar is not None:
+            self.bar.update(*self._get_bar_region())
 
     def size(self, dialog):
         """
@@ -295,7 +300,7 @@ class VScrollbar(HScrollbar):
         """Returns the area occupied by the up button
         (x, y, width, height)"""
         return (self.x, self.y + self.height - self.left_template.height,
-                self.width, self.left.height)
+                self.width, self.left_template.height)
 
     def _get_right_region(self):
         """Returns the area occupied by the down button
@@ -365,5 +370,6 @@ class VScrollbar(HScrollbar):
             y += bar_height
             max_bar_y = space_height - bar_height
             self.pos = float(min(max_bar_y, top - y)) / space_height
-        self.bar.update(*self._get_bar_region())
+        if self.bar is not None:
+            self.bar.update(*self._get_bar_region())
 

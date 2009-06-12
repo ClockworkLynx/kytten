@@ -30,7 +30,7 @@ class DialogEventManager(Control):
         @param modifiers Modifiers for key press
         """
         if symbol in [pyglet.window.key.TAB, pyglet.window.key.ENTER]:
-            focusable = [x for x in self.controls if x.id is not None]
+            focusable = [x for x in self.controls if x.is_focusable()]
             if not focusable:
                 return
 
@@ -327,7 +327,7 @@ class Dialog(Wrapper, DialogEventManager):
         self.fg_group = pyglet.graphics.OrderedGroup(2, self.root_group)
         self.highlight_group = pyglet.graphics.OrderedGroup(3, self.root_group)
         self.needs_layout = True
-        self.controls = []
+        self.control_map = []
         self.hover = None
         self.focus = None
         self.is_dragging = False
@@ -366,8 +366,25 @@ class Dialog(Wrapper, DialogEventManager):
         # Perform the actual layout now!
         self.layout(x, y)
         self.controls = self._get_controls()
+        self.control_map = dict([(x, x.id) for x in self.controls
+                                 if x.id is not None])
 
         self.needs_layout = False
+
+    def get_value(self, id):
+        widget = self.get_widget(id)
+        if widget is not None:
+            return widget.get_value()
+
+    def get_values(self):
+        retval = {}
+        for widget in self.controls:
+            if widget.is_input():
+                retval[widget.id] = widget.get_value()
+        return retval
+
+    def get_widget(self, id):
+        return self.control_map.get(id)
 
     def on_key_press(self, symbol, modifiers):
         """

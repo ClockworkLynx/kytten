@@ -9,7 +9,8 @@
 # TitleFrame: like Frame, but has a title region on top as well.
 
 from widgets import Widget, Graphic, Label
-from layout import HorizontalLayout, VerticalLayout, VALIGN_BOTTOM
+from layout import HorizontalLayout, VerticalLayout, GetRelativePoint
+from layout import VALIGN_BOTTOM, ANCHOR_CENTER
 
 class Wrapper(Widget):
     """
@@ -19,7 +20,8 @@ class Wrapper(Widget):
     panel, or Scrollable might provide scrollbars to let the widget
     be panned about within its display area.
     """
-    def __init__(self, content=None):
+    def __init__(self, content=None,
+                 is_expandable=False, anchor=ANCHOR_CENTER, offset=(0, 0)):
         """
         Creates a new Wrapper around an included Widget.
 
@@ -27,6 +29,9 @@ class Wrapper(Widget):
         """
         Widget.__init__(self)
         self.content = content
+        self.expandable = is_expandable
+        self.anchor = anchor
+        self.content_offset = offset
 
     def _get_controls(self):
         """Returns Controls contained by the Wrapper."""
@@ -38,6 +43,15 @@ class Wrapper(Widget):
             self.content.delete()
         Widget.delete(self)
 
+    def expand(self, width, height):
+        if self.content.is_expandable():
+            self.content.expand(width, height)
+        self.width = width
+        self.height = height
+
+    def is_expandable(self):
+        return self.expandable
+
     def layout(self, x, y):
         """
         Assigns a new position to the Wrapper.
@@ -47,6 +61,9 @@ class Wrapper(Widget):
         """
         Widget.layout(self, x, y)
         if self.content is not None:
+            x, y = GetRelativePoint(
+                self, self.anchor,
+                self.content, self.anchor, self.content_offset)
             self.content.layout(x, y)
 
     def set(self, dialog, content):
@@ -77,11 +94,13 @@ class Frame(Wrapper):
     """
     Frame draws an untitled frame which encloses the dialog's content.
     """
-    def __init__(self, content=None, component="frame", image_name="image"):
+    def __init__(self, content=None, component="frame", image_name="image",
+                 is_expandable=False, anchor=ANCHOR_CENTER):
         """
         Creates a new Frame surrounding a widget or layout.
         """
-        Wrapper.__init__(self, content)
+        Wrapper.__init__(self, content,
+                         is_expandable=is_expandable, anchor=anchor)
         self.frame = None
         self.component = component
         self.image_name = image_name
@@ -94,6 +113,13 @@ class Frame(Wrapper):
             self.frame.delete()
             self.frame = None
         Wrapper.delete(self)
+
+    def expand(self, width, height):
+        if self.content.is_expandable():
+            content_width, content_height = \
+                         self.frame.get_content_size(width, height)
+            self.content.expand(content_width, content_height)
+        self.width, self.height = width, height
 
     def layout(self, x, y):
         """
@@ -109,8 +135,11 @@ class Frame(Wrapper):
         # the content than the content actually fills, due to repeating
         # texture constraints.  Always center the content.
         x, y, width, height = self.frame.get_content_region()
-        self.content.layout(x + width/2 - self.content.width/2,
-                            y + height/2 - self.content.height/2)
+        interior = Widget(width, height)
+        interior.x, interior.y = x, y
+        x, y = GetRelativePoint(interior, self.anchor,
+                                self.content, self.anchor, self.content_offset)
+        self.content.layout(x, y)
 
     def size(self, dialog):
         """
@@ -136,6 +165,7 @@ class TitleFrame(VerticalLayout):
                           component="titlebar", image_name="image-center"),
                     Graphic("titlebar", "image-right", is_expandable=True),
                 ], align=VALIGN_BOTTOM, padding=0),
-                Frame(content, "titlebar", "image-frame"),
+                Frame(content, "titlebar", "image-frame",
+                      is_expandable=True),
             ], padding=0)
 

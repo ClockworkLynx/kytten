@@ -126,6 +126,7 @@ class VerticalLayout(Widget):
         for item in self.expandable:
             item.expand(item.width, item.height + available)
         self.height = height
+        self.width = width
 
     def is_expandable(self):
         """True if we contain expandable content."""
