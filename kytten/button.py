@@ -71,20 +71,18 @@ class Button(Control):
             self.is_pressed = True
 
             # Delete the button to force it to be redrawn
-            self.button.delete()
-            self.button = None
+            self.delete()
             self.size(dialog)
-            self.button.update(self.x, self.y, self.width, self.height)
+            self.layout(self.x, self.y)
 
     def on_mouse_release(self, dialog, x, y, button, modifiers):
         if self.is_pressed:
             self.is_pressed = False
 
             # Delete the button to force it to be redrawn
-            self.button.delete()
-            self.button = None
+            self.delete()
             self.size(dialog)
-            self.button.update(self.x, self.y, self.width, self.height)
+            self.layout(self.x, self.y)
 
             # Now, if mouse is still inside us, signal on_click
             if self.on_click is not None and self.hit_test(x, y):
@@ -114,10 +112,14 @@ class Button(Control):
                          dialog.batch,
                          dialog.bg_group)
         if self.label is None:
+            if self.is_pressed:
+                button_type = 'down'
+            else:
+                button_type = 'up'
             self.label = pyglet.text.Label(self.text,
-                font_name=dialog.theme['button']['font'],
-                font_size=dialog.theme['button']['font_size'],
-                color=dialog.theme['button']['gui_color'],
+                font_name=dialog.theme['button'][button_type]['font'],
+                font_size=dialog.theme['button'][button_type]['font_size'],
+                color=dialog.theme['button'][button_type]['gui_color'],
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent

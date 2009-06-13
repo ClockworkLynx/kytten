@@ -125,21 +125,21 @@ if __name__ == '__main__':
     # Set up the test Theme
     theme = kytten.Theme(os.getcwd(), override={
 	"gui_color": [255, 235, 128, 255],
-	"font_size": 12
+	"font_size": 14
     })
 
     # Set up a test Dialog
     dialog = kytten.Dialog(
-	kytten.TitleFrame("Kytten Test",
+	kytten.TitleFrame("Kytten",
 	    kytten.Scrollable(
 		kytten.VerticalLayout([
-		    kytten.Label("Test Menu"),
 		    kytten.Menu(["Test",
 				 "Longer test",
 				 "Very long test name",
 				 "Another test",
+				 "Even more testing",
 				 "That's enough testing"]),
-		]), height=100),
+		]), height=100)
 	),
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_TOP_LEFT,
@@ -149,7 +149,7 @@ if __name__ == '__main__':
     # Set up another test Dialog
     theme2 = kytten.Theme(theme, override={
 	"gui_color": [0, 128, 255, 255],
-	"font_size": 12,
+	"font_size": 14,
     })
     dialog2 = kytten.Dialog(
 	kytten.Frame(
@@ -163,8 +163,9 @@ if __name__ == '__main__':
 		    ], anchor=kytten.ANCHOR_LEFT),
 		]),
 		kytten.HorizontalLayout([
-		    kytten.Button("Enter"),
-		    None, # translated to a spacer
+		    kytten.Button("Update"),
+		    kytten.Button("Revert"),
+		    None,  # translated to a spacer
 		    kytten.Button("Cancel")
 		]),
 	    ]),

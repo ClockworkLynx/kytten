@@ -62,8 +62,9 @@ class MenuOption(Control):
 
     def select(self, dialog):
         self.is_selected = True
-        self.label.delete()
-        self.label = None
+        if self.label is not None:
+            self.label.delete()
+            self.label = None
         dialog.set_needs_layout()
 
     def size(self, dialog):
@@ -107,8 +108,9 @@ class MenuOption(Control):
 
     def unselect(self, dialog):
         self.is_selected = False
-        self.label.delete()
-        self.label = None
+        if self.label is not None:
+            self.label.delete()
+            self.label = None
         if self.background is not None:
             self.background.delete()
             self.background = None
