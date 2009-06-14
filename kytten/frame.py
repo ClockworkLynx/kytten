@@ -8,9 +8,10 @@
 #        to cover the Widget's area, or the space within which it is contained.
 # TitleFrame: like Frame, but has a title region on top as well.
 
-from widgets import Widget, Graphic, Label
+from widgets import Widget, Control, Graphic, Label
 from layout import HorizontalLayout, VerticalLayout, GetRelativePoint
-from layout import VALIGN_BOTTOM, ANCHOR_CENTER
+from layout import VALIGN_BOTTOM, HALIGN_LEFT, HALIGN_CENTER, HALIGN_RIGHT
+from layout import ANCHOR_CENTER
 
 class Wrapper(Widget):
     """
@@ -169,3 +170,78 @@ class TitleFrame(VerticalLayout):
                       is_expandable=True),
             ], padding=0)
 
+class SectionHeader(HorizontalLayout):
+    # TODO(lynx): there's a weird bug where sometimes the underline beneath
+    # the section header doesn't display properly.
+    def __init__(self, title, align=HALIGN_CENTER):
+        if align == HALIGN_LEFT:
+            left_expand = False
+            right_expand = True
+        elif align == HALIGN_CENTER:
+            left_expand = True
+            right_expand = True
+        else:  # HALIGN_RIGHT
+            left_expand = True
+            right_expand = False
+
+        HorizontalLayout.__init__(self, content=[
+                Graphic("section", "image-left", is_expandable=left_expand),
+                Frame(Label(title, component="section"),
+                      component="section", image_name="image-center"),
+                Graphic("section", "image-right", is_expandable=right_expand),
+            ], align=VALIGN_BOTTOM, padding=0)
+
+class FoldingSection(Control, VerticalLayout):
+    def __init__(self, title, content=None, is_open=True, align=HALIGN_CENTER):
+        Control.__init__(self)
+        if align == HALIGN_LEFT:
+            left_expand = False
+            right_expand = True
+        elif align == HALIGN_CENTER:
+            left_expand = True
+            right_expand = True
+        else:  # HALIGN_RIGHT
+            left_expand = True
+            right_expand = False
+
+        self.is_open = is_open
+        self.folding_content = content
+        self.book = Graphic("section", self._get_image_name())
+        if self.is_open:
+            self.book = Graphic("section", "image-opened")
+        else:
+            self.book = Graphic("section", "image-closed")
+
+        self.header = HorizontalLayout([
+            Graphic("section", "image-left", is_expandable=left_expand),
+            Frame(HorizontalLayout([
+                      self.book,
+                      Label(title, component="section"),
+                  ]), component="section", image_name="image-center"),
+            Graphic("section", "image-right", is_expandable=right_expand),
+            ], align=VALIGN_BOTTOM, padding=0)
+        layout = [self.header]
+        if self.is_open:
+            layout.append(content)
+
+        VerticalLayout.__init__(self, content=layout, align=HALIGN_LEFT)
+
+    def _get_image_name(self):
+        if self.is_open:
+            return "image-opened"
+        else:
+            return "image-closed"
+
+    def hit_test(self, x, y):
+        return self.header.hit_test(x, y)
+
+    def on_mouse_press(self, dialog, x, y, button, modifiers):
+        self.is_open = not self.is_open
+        self.book.delete()
+        self.book.image_name = self._get_image_name()
+        if self.is_open:
+            self.add(dialog, self.folding_content)
+        else:
+            self.remove(dialog, self.folding_content)
+            self.folding_content.delete()
+        dialog.set_needs_layout()

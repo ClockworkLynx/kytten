@@ -242,11 +242,19 @@ class Scrollable(Wrapper, DialogEventManager):
            (self.max_width and self.width > self.max_width):
             if self.hscrollbar is None:
                 self.hscrollbar = HScrollbar(self.max_width)
+        else:
+            if self.hscrollbar is not None:
+                self.hscrollbar.delete()
+                self.hscrollbar = None
 
         if self.always_show_scrollbars or \
            (self.max_height and self.height > self.max_height):
             if self.vscrollbar is None:
                 self.vscrollbar = VScrollbar(self.max_height)
+        else:
+            if self.vscrollbar is not None:
+                self.vscrollbar.delete()
+                self.vscrollbar = None
 
         self.width = min(self.max_width or self.width, self.width)
         self.content_width = self.width

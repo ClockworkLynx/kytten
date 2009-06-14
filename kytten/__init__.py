@@ -48,7 +48,7 @@ from button import Button
 from checkbox import Checkbox
 from dialog import Dialog
 from document import Document
-from frame import Frame, TitleFrame, Wrapper
+from frame import Frame, TitleFrame, Wrapper, SectionHeader, FoldingSection
 from layout import GridLayout, HorizontalLayout, VerticalLayout, FreeLayout
 from menu import Menu
 from scrollable import Scrollable

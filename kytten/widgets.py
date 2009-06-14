@@ -310,10 +310,15 @@ class Graphic(Widget):
 
 class Label(Widget):
     """A wrapper around a simple text label."""
-    def __init__(self, text="", bold=False, component=None):
+    def __init__(self, text="", bold=False, italic=False,
+                 font_name=None, font_size=None, color=None, component=None):
         Widget.__init__(self)
         self.text = text
         self.bold = bold
+        self.italic = italic
+        self.font_name = font_name
+        self.font_size = font_size
+        self.color = color
         self.component = component
         self.label = None
 
@@ -331,10 +336,12 @@ class Label(Widget):
     def size(self, dialog):
         if self.label is None:
             self.label = pyglet.text.Label(
-                self.text, bold=self.bold,
-                color=dialog.theme[self.component]['gui_color'],
-                font_name=dialog.theme[self.component]['font'],
-                font_size=dialog.theme[self.component]['font_size'],
+                self.text, bold=self.bold, italic=self.italic,
+                color=self.color or dialog.theme[self.component]['gui_color'],
+                font_name=self.font_name or
+                          dialog.theme[self.component]['font'],
+                font_size=self.font_size or
+                          dialog.theme[self.component]['font_size'],
                 batch=dialog.batch, group=dialog.fg_group)
             font = self.label.document.get_font()
             self.width = self.label.content_width

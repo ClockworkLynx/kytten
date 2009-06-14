@@ -9,28 +9,30 @@ class Checkbox(Control):
     """
     A two-state checkbox.
     """
-    def __init__(self, text="", id=None, on_click=None, padding=4,
-                 align=HALIGN_RIGHT):
+    def __init__(self, text="", is_checked=False, id=None,
+                 align=HALIGN_RIGHT, padding=4, on_click=None):
         """
         Creates a new checkbox.  The provided text will be used to caption the
         checkbox.
 
         @param text Label for the checkbox
-        @param on_click Callback for the checkbox
-        @param padding Space between checkbox and label
+        @param is_checked True if we should start checked
+        @param id ID for value
         @param align HALIGN_RIGHT if label should be right of checkbox,
                      HALIGN_LEFT if label should be left of checkbox
+        @param padding Space between checkbox and label
+        @param on_click Callback for the checkbox
         """
         assert align in [HALIGN_LEFT, HALIGN_RIGHT]
         Control.__init__(self, id=id)
         self.text = text
-        self.on_click = on_click
-        self.padding = padding
+        self.is_checked = is_checked
         self.align = align
+        self.padding = padding
+        self.on_click = on_click
         self.label = None
         self.checkbox = None
         self.highlight = None
-        self.is_checked = False
 
     def delete(self):
         """

@@ -123,13 +123,65 @@
     },
     "menuoption": {
         "image-highlight": {
-            "src": "input-highlight.png",
-            "stretch": [0, 0, 8, 8],
-            "padding": [0, 0, 0, 0]
+            "src": "input-highlight.png"
         },
         "selection": {
             "text_color": [0, 0, 0, 255],
             "gui_color": [255, 255, 255, 255]
         }
+    },
+    "checkbox": {
+        "image": {
+            "src": "checkbox.png"
+        },
+        "image-checked": {
+            "src": "checkbox-checked.png"
+        },
+        "image-highlight": {
+            "src": "input-highlight.png"
+        }
+    },
+    "slider": {
+        "image-bar": {
+            "src": "slider-bar.png",
+            "stretch": [8, 8, 8, 0],
+            "padding": [8, 8, 8, 8]
+        },
+        "image-knob": {
+            "src": "slider-knob.png"
+        },
+        "image-step": {
+            "src": "slider-step.png"
+        },
+        "offset": [-16, -16],
+        "padding": [8, 8, 8, 8],
+        "step-offset": [-2, -8]
+    },
+    "section": {
+        "image-left": {
+            "src": "line.png",
+            "region": [0, 0, 6, 4],
+            "stretch": [2, 4, 4, 0],
+            "padding": [0, 0, 0, 6]
+        },
+        "image-center": {
+            "src": "line.png",
+            "region": [2, 0, 4, 4],
+            "stretch": [0, 4, 4, 0],
+            "padding": [0, 0, 0, 6]
+        },
+        "image-right": {
+            "src": "line.png",
+            "region": [2, 0, 6, 4],
+            "stretch": [0, 4, 4, 0],
+            "padding": [0, 0, 0, 6]
+        },
+        "image-opened": {
+            "src": "book-open.png"
+        },
+        "image-closed": {
+            "src": "book.png"
+        },
+        "font_size": 14
     }
 }

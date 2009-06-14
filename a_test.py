@@ -3,100 +3,188 @@
 
 # Test dialog using the Kytten GUI
 
-import copy
-import glob
 import os
-
 import pyglet
 # Disable error checking for increased performance
 pyglet.options['debug_gl'] = False
 from pyglet import gl
 
 import kytten
+from background import Background
 
-class Background:
-    """Selects one of several backgrounds to display behind the test dialog."""
+# Default theme, gold-colored
+theme = kytten.Theme(os.getcwd(), override={
+    "gui_color": [255, 235, 128, 255],
+    "font_size": 14
+})
 
-    def __init__(self, loc=os.getcwd(), batch=None, group=None):
-	"""
-	Load a set of backgrounds from a given directory.
+# Default theme, blue-colored
+theme2 = kytten.Theme(theme, override={
+    "gui_color": [64, 128, 255, 255],
+    "font_size": 12
+})
 
-	@param loc  Location, defaults to current working directory.
-	@param batch Batch to which to add our background
-	@param group Group to which to add our background
-	"""
-	filenames = glob.glob(os.path.join(loc, '*.jpg'))
-	images = [pyglet.image.load(x) for x in filenames]
-	self.textures = [x.get_texture() for x in images]
-	self.texture = None
-	self.vertex_list = None
-	if batch is None:
-	    self.batch = pyglet.graphics.Batch()
-	    self.own_batch = True
-	else:
-	    self.own_batch = False
-	    self.batch = batch
-	self.parent_group = group
-	self.group = None
-	self.width = self.height = 0
-	self.needs_resizing = False
+# Callback functions for dialogs which may be of interest
+def on_escape(dialog):
+    window.remove_handlers(dialog)
+    dialog.delete()
 
-    def draw(self):
-	if self.own_batch:
-	    self.batch.draw()
-	else:
-	    self.batch.draw_subset([self.vertex_list])
+def create_document_dialog():
+    document = pyglet.text.decode_attributed('''
+With {bold True}kytten{bold False}, you can harness the power of
+{underline (255, 255, 255, 255)}pyglet{underline None}'s documents in a
+scrollable window!
 
-    def on_key_press(self, symbol, modifiers):
-	next_texture = None
-	if symbol == pyglet.window.key.RIGHT:
-	    next_texture = self.textures.pop(0)
-	    if self.texture is not None:
-		self.textures.append(self.texture)
-	elif symbol == pyglet.window.key.LEFT:
-	    next_texture = self.textures.pop(-1)
-	    if self.texture is not None:
-		self.textures.insert(0, self.texture)
-	if next_texture is not None:
-	    self.texture = next_texture
-	    self.needs_resizing = True
-	    return pyglet.event.EVENT_HANDLED
+{font_name "Courier New"}Change fonts{font_name Lucia Grande},
+{italic True}italicize your text,{italic False} and more!
 
-    def on_resize(self, width, height):
-	if width != self.width or height != self.height:
-	    self.width, self.height = width, height
-	    self.needs_resizing = True
+{align "center"}Center yourself!{align "left"}{}
+{align "right"}Or go right.{align "left"}
 
-    def on_update(self, dt):
-	# We only update the background size on on_update because
-	# otherwise we might receive several resize events between frames.
-	if not self.needs_resizing:
-	    return
-	self.needs_resizing = False
+{color (128, 255, 128, 255)}
+Express yourself colorfully!
+{color (255, 255, 255, 255}
+''')
 
-	if self.texture is None:
-	    self.texture = self.textures.pop(0) # pick first texture
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.Document(document, width=300, height=150)
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape)
+    window.push_handlers(dialog)
 
-	if self.vertex_list is not None:
-	    self.vertex_list.delete() # clear existing vertex_list
+def create_form_dialog():
+    dialog = None
+    def on_enter(dialog):
+	print "Form submitted!"
+	for key, value in dialog.get_values().iteritems():
+	    print "  %s=%s" % (key, value)
+	on_escape(dialog)
+    def on_submit():
+	on_enter(dialog)
+    def on_cancel():
+	print "Form canceled."
+	on_escape(dialog)
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.VerticalLayout([
+		kytten.SectionHeader("Personnel Data",
+				     align=kytten.HALIGN_LEFT),
+		kytten.GridLayout([
+		    [kytten.Label("Name"), kytten.Input("name", "Lynx")],
+		    [kytten.Label("Job"), kytten.Input("job", "Cat")],
+		    [kytten.Label("Hobby"), kytten.Input("hobby",
+							 "Programming")],
+		]),
+		kytten.Checkbox("Full-Time Employee", id="employee"),
+		kytten.Checkbox("Married", id="married"),
+		kytten.SectionHeader("Actions",
+				     align=kytten.HALIGN_LEFT),
+		kytten.HorizontalLayout([
+		    kytten.Button("Submit", on_click=on_submit),
+		    None,
+		    kytten.Button("Cancel", on_click=on_cancel),
+		]),
+	    ], align=kytten.HALIGN_LEFT),
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_enter=on_enter, on_escape=on_escape)
+    window.push_handlers(dialog)
 
-	# Now size the texture quad to retain its proportions but completely
-	# overlap the screen
-	our_width = self.texture.width * self.height / self.texture.height
-	if our_width >= self.width:
-	    our_height = self.height
-	else:
-	    our_height = self.texture.height * self.width / self.texture.width
-	    our_width = self.width
-	x1 = int(self.width/2 - our_width/2)
-	y1 = int(self.height/2 - our_height/2)
-	x2, y2 = x1 + our_width, y1 + our_height
-	self.group = pyglet.graphics.TextureGroup(
-	    self.texture, self.parent_group)
-	self.vertex_list = self.batch.add(4, gl.GL_QUADS, self.group,
-	    ('v2i', (x1, y1, x2, y1, x2, y2, x1, y2)),
-	    ('c3B', (255, 255, 255) * 4),
-	    ('t3f', self.texture.tex_coords))
+def create_scrollable_dialog():
+    def on_select(choice):
+	print "Kytten is %s" % choice
+
+    def on_set(value):
+	print "Kytten rating is %0.0f" % value
+
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.Scrollable(
+		kytten.VerticalLayout([
+		    kytten.Label("Rate Kytten from 1 to 10:"),
+		    kytten.Slider(1.0, 10.0, steps=9, on_set=on_set),
+		    kytten.Label("Kytten is..."),
+		    kytten.Menu(options=["Awesome",
+					 "Cute",
+					 "Excellent",
+					 "Fantastic",
+					 "Great",
+					 "Supercalifragilistiexpialidocious",
+					 "Terrific"],
+				align=kytten.HALIGN_LEFT, on_select=on_select),
+		], align=kytten.HALIGN_LEFT),
+	    width=200, height=150)
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape)
+    window.push_handlers(dialog)
+
+def create_folding_dialog():
+    document1 = pyglet.text.decode_attributed("""
+You can click on the sections below to open them up.
+Jellicle Cats is, of course, copyrighted by T. S. Eliot.
+""")
+    document2 = pyglet.text.decode_attributed("""
+Jellicle cats come out tonight{}
+Jellicle cats come one, come all{}
+The Jellicle moon is shining bright{}
+Jellicles come to the Jellicle ball
+""")
+    document3 = pyglet.text.decode_attributed("""
+Jellicle cats are black and white{}
+Jellicle cats are rather small{}
+Jellicle cats are merry and bright{}
+And pleasant to hear when we caterwaul
+""")
+    document4 = pyglet.text.decode_attributed("""
+Jellicle cats have cheerful faces{}
+Jellicle cats have bright black eyes{}
+We like to practice our airs and graces{}
+And wait for the Jellicle moon to rise
+""")
+
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.Scrollable(
+		kytten.VerticalLayout([
+		    kytten.SectionHeader("Jellicle Cats"),
+		    kytten.Document(document1, width=300),
+		    kytten.FoldingSection("Verse 1",
+			kytten.VerticalLayout([
+			    kytten.Document(document2, width=300),
+			])),
+		    kytten.FoldingSection("Verse 2",
+			kytten.VerticalLayout([
+			    kytten.Document(document3, width=300),
+			]), is_open=False),
+		    kytten.FoldingSection("Verse 3",
+			kytten.VerticalLayout([
+			    kytten.Document(document4, width=300),
+			]), is_open=False),
+		], align=kytten.HALIGN_LEFT),
+	    height=400)
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape)
+    window.push_handlers(dialog)
+
+def on_select(choice):
+    if choice == 'Document':
+	create_document_dialog()
+    elif choice == 'Form':
+	create_form_dialog()
+    elif choice == 'Scrollable':
+	create_scrollable_dialog()
+    elif choice == 'Folding':
+	create_folding_dialog()
+    else:
+	print "Unexpected menu selection: %s" % choice
 
 if __name__ == '__main__':
     window = pyglet.window.Window(
@@ -122,58 +210,20 @@ if __name__ == '__main__':
     background = Background(batch=batch, group=bg_group)
     window.push_handlers(background)
 
-    # Set up the test Theme
-    theme = kytten.Theme(os.getcwd(), override={
-	"gui_color": [255, 235, 128, 255],
-	"font_size": 14
-    })
-
-    # Set up a test Dialog
+    # Set up a Dialog to choose test dialogs to show
     dialog = kytten.Dialog(
-	kytten.TitleFrame("Kytten",
-	    kytten.Scrollable(
-		kytten.VerticalLayout([
-		    kytten.Menu(["Test",
-				 "Longer test",
-				 "Very long test name",
-				 "Another test",
-				 "Even more testing",
-				 "That's enough testing"]),
-		]), height=100)
+	kytten.TitleFrame("Kytten Demo",
+	    kytten.VerticalLayout([
+		kytten.Label("Select dialog to show"),
+		kytten.Menu(options=["Document", "Form", "Scrollable",
+				     "Folding"],
+			    on_select=on_select),
+	    ]),
 	),
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_TOP_LEFT,
 	theme=theme)
     window.push_handlers(dialog)
-
-    # Set up another test Dialog
-    theme2 = kytten.Theme(theme, override={
-	"gui_color": [0, 128, 255, 255],
-	"font_size": 14,
-    })
-    dialog2 = kytten.Dialog(
-	kytten.Frame(
-	    kytten.VerticalLayout([
-		kytten.HorizontalLayout([
-		    kytten.GridLayout([
-			[kytten.Label("Name"), kytten.Input("name", "Lynx")],
-			[kytten.Label("Job"), kytten.Input("job", "Cat")],
-			[kytten.Label("Hobby"),
-			 kytten.Input("hobby", "Programming")],
-		    ], anchor=kytten.ANCHOR_LEFT),
-		]),
-		kytten.HorizontalLayout([
-		    kytten.Button("Update"),
-		    kytten.Button("Revert"),
-		    None,  # translated to a spacer
-		    kytten.Button("Cancel")
-		]),
-	    ]),
-	),
-	window=window, batch=batch, group=fg_group,
-	anchor=kytten.ANCHOR_BOTTOM_RIGHT,
-	theme=theme2)
-    window.push_handlers(dialog2)
 
     # Change this flag to run with profiling and dump top 20 cumulative times
     if True:
