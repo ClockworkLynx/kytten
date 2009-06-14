@@ -162,7 +162,7 @@ class Scrollable(Wrapper, DialogEventManager):
                 x + (self.max_width or self.content_width), y)
 
         # Set the scissor group
-        self.root_group.x, self.root_group.y = x, y
+        self.root_group.x, self.root_group.y = x - 1, y - 1
         self.root_group.width = self.content_width + 1
         self.root_group.height = self.content_height + 1
 
@@ -221,7 +221,7 @@ class Scrollable(Wrapper, DialogEventManager):
         self.vscrollbar_width = \
             dialog.theme['vscrollbar']['image-up'].width
 
-        if self.root_group is None: # do we need to re-clone Dialog?
+        if self.root_group is None: # do we need to re-clone dialog groups?
             self.theme = dialog.theme
             self.batch = dialog.batch
             self.root_group = ScrollableGroup(0, 0, self.width, self.height,
@@ -241,44 +241,29 @@ class Scrollable(Wrapper, DialogEventManager):
         if self.always_show_scrollbars or \
            (self.max_width and self.width > self.max_width):
             if self.hscrollbar is None:
-                self.hscrollbar = HScrollbar(
-                    self.max_width,
-                    dialog.theme['hscrollbar']['image-left'],
-                    dialog.theme['hscrollbar']['image-space'],
-                    dialog.theme['hscrollbar']['image-bar'],
-                    dialog.theme['hscrollbar']['image-right'],
-                    dialog.theme['hscrollbar']['image-leftmax'],
-                    dialog.theme['hscrollbar']['image-rightmax'])
+                self.hscrollbar = HScrollbar(self.max_width)
 
         if self.always_show_scrollbars or \
            (self.max_height and self.height > self.max_height):
             if self.vscrollbar is None:
-                self.vscrollbar = VScrollbar(
-                    self.max_height,
-                    dialog.theme['vscrollbar']['image-up'],
-                    dialog.theme['vscrollbar']['image-space'],
-                    dialog.theme['vscrollbar']['image-bar'],
-                    dialog.theme['vscrollbar']['image-down'],
-                    dialog.theme['vscrollbar']['image-upmax'],
-                    dialog.theme['vscrollbar']['image-downmax'])
-
-        if self.hscrollbar is not None:
-            self.hscrollbar.size(dialog)
-            self.hscrollbar.set(self.max_width, self.width)
-
-        if self.vscrollbar is not None:
-            self.vscrollbar.size(dialog)
-            self.vscrollbar.set(self.max_height, self.height)
+                self.vscrollbar = VScrollbar(self.max_height)
 
         self.width = min(self.max_width or self.width, self.width)
         self.content_width = self.width
-        if self.vscrollbar is not None:
-            self.width += self.vscrollbar.width
-
         self.height = min(self.max_height or self.height, self.height)
         self.content_height = self.height
+
         if self.hscrollbar is not None:
+            self.hscrollbar.size(dialog)
+            self.hscrollbar.set(self.max_width, max(self.content.width,
+                                                    self.max_width))
             self.height += self.hscrollbar.height
+
+        if self.vscrollbar is not None:
+            self.vscrollbar.size(dialog)
+            self.vscrollbar.set(self.max_height, max(self.content.height,
+                                                     self.max_height))
+            self.width += self.vscrollbar.width
 
         self.controls = self.content._get_controls()
 

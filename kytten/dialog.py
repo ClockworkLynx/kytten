@@ -379,7 +379,7 @@ class Dialog(Wrapper, DialogEventManager):
     def get_values(self):
         retval = {}
         for widget in self.controls:
-            if widget.is_input():
+            if widget.is_input() and widget.id is not None:
                 retval[widget.id] = widget.get_value()
         return retval
 

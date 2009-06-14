@@ -123,8 +123,13 @@ class VerticalLayout(Widget):
         equally between all spacers.
         """
         available = int((height - self.height) / len(self.expandable))
+        remainder = height - self.height - len(self.expandable) * available
         for item in self.expandable:
-            item.expand(item.width, item.height + available)
+            if remainder > 0:
+                item.expand(item.width, item.height + available + 1)
+                remainder -= 1
+            else:
+                item.expand(item.width, item.height + available)
         self.height = height
         self.width = width
 
@@ -225,8 +230,13 @@ class HorizontalLayout(VerticalLayout):
         equally between all spacers.
         """
         available = int((width - self.width) / len(self.expandable))
+        remainder = height - self.height - len(self.expandable) * available
         for item in self.expandable:
-            item.expand(item.width + available, item.height)
+            if remainder > 0:
+                item.expand(item.width + available + 1, item.height)
+                remainder -= 1
+            else:
+                item.expand(item.width + available, item.height)
         self.width = width
 
     def layout(self, x, y):

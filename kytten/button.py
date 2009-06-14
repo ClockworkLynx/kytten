@@ -72,8 +72,7 @@ class Button(Control):
 
             # Delete the button to force it to be redrawn
             self.delete()
-            self.size(dialog)
-            self.layout(self.x, self.y)
+            dialog.set_needs_layout()
 
     def on_mouse_release(self, dialog, x, y, button, modifiers):
         if self.is_pressed:
@@ -81,13 +80,12 @@ class Button(Control):
 
             # Delete the button to force it to be redrawn
             self.delete()
-            self.size(dialog)
-            self.layout(self.x, self.y)
+            dialog.set_needs_layout()
 
             # Now, if mouse is still inside us, signal on_click
             if self.on_click is not None and self.hit_test(x, y):
                 if self.id is not None:
-                    self.on_click(id)
+                    self.on_click(self.id)
                 else:
                     self.on_click()
 

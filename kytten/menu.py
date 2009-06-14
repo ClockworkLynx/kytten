@@ -23,6 +23,17 @@ class MenuOption(Control):
         self.highlight = None
         self.is_selected = False
 
+    def delete(self):
+        if self.label is not None:
+            self.label.delete()
+            self.label = None
+        if self.background is not None:
+            self.background.delete()
+            self.background = None
+        if self.highlight is not None:
+            self.highlight.delete()
+            self.highlight = None
+
     def expand(self, width, height):
         self.width = width
         self.height = height

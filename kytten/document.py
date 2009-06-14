@@ -8,37 +8,10 @@ from scrollbar import VScrollbar
 
 class Document(Control):
     """
-    Allows you to embed a document within the GUI, which can then be scrolled
-    using the Scrollable frame.
-
-    Example:
-    document = pyglet.text.decode_attributed('''
-With {bold True}kytten{bold False}, you can harness the power of
-{underline (255, 255, 255, 255)}pyglet{underline None}'s documents in a
-scrollable window!
-
-{font_name "Courier New"}Change fonts{font_name Lucia Grande},
-{italic True}italicize your text,{italic False} and more!
-
-{align "center"}Center yourself!{align "left"}{}
-{align "right"}Or go right.{align "left"}
-
-{color (128, 64, 255, 255)}
-Colors too, no problem.
-{color (255, 255, 255, 255}
-''')
-
-    # Set up a Dialog to scroll through the text
-    dialog = kytten.Dialog(
-	kytten.Frame(
-	    kytten.Document(document, width=300, height=100)
-	),
-	window=window, batch=batch, group=fg_group,
-	anchor=kytten.ANCHOR_TOP_LEFT,
-	theme=theme)
-    window.push_handlers(dialog)
+    Allows you to embed a document within the GUI, which includes a
+    vertical scrollbar as needed.
     """
-    def __init__(self, document, width=1000, height=0,
+    def __init__(self, document, width=1000, height=5000,
                  is_fixed_size=False, always_show_scrollbar=False):
         """
         Creates a new Document.
@@ -132,16 +105,11 @@ Colors too, no problem.
                 self.height = self.max_height
             else:
                 self.height = self.content.content_height
+            self.content.height = self.height
         if self.always_show_scrollbar or \
-           self.content.content_height > self.max_height:
+           (self.max_height and self.content.content_height > self.max_height):
             if self.scrollbar is None:
-                self.scrollbar = VScrollbar(self.max_height,
-                    dialog.theme['vscrollbar']['image-up'],
-                    dialog.theme['vscrollbar']['image-space'],
-                    dialog.theme['vscrollbar']['image-bar'],
-                    dialog.theme['vscrollbar']['image-down'],
-                    dialog.theme['vscrollbar']['image-upmax'],
-                    dialog.theme['vscrollbar']['image-downmax'])
+                self.scrollbar = VScrollbar(self.max_height)
             self.scrollbar.size(dialog)
             self.scrollbar.set(self.max_height, self.content.content_height)
         if self.scrollbar is not None:

@@ -45,12 +45,14 @@ from layout import ANCHOR_TOP_LEFT, ANCHOR_TOP, ANCHOR_TOP_RIGHT, \
 # GUI public classes
 
 from button import Button
+from checkbox import Checkbox
 from dialog import Dialog
 from document import Document
-from frame import Frame, TitleFrame
+from frame import Frame, TitleFrame, Wrapper
 from layout import GridLayout, HorizontalLayout, VerticalLayout, FreeLayout
 from menu import Menu
 from scrollable import Scrollable
+from slider import Slider
 from text_input import Input
 from theme import Theme
 from widgets import Widget, Spacer, Label

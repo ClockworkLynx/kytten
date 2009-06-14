@@ -30,6 +30,19 @@ DEFAULT_THEME_SETTINGS = {
     "highlight_color": [255, 255, 255, 64],
 }
 
+class ThemeTextureGroup(pyglet.graphics.TextureGroup):
+    """
+    ThemeTextureGroup, in addition to setting the texture, also ensures that
+    we map to the nearest texel instead of trying to interpolate from nearby
+    texels.  This prevents 'blooming' along the edges.
+    """
+    def set_state(self):
+	pyglet.graphics.TextureGroup.set_state(self)
+	gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
+			   gl.GL_NEAREST)
+	gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER,
+			   gl.GL_NEAREST)
+
 class TextureGraphicElementTemplate:
     def __init__(self, theme, texture, width=None, height=None):
 	self.theme = theme
@@ -63,7 +76,7 @@ class TextureGraphicElement:
     def __init__(self, theme, texture, color, batch, group):
 	self.x = self.y = 0
 	self.width, self.height = texture.width, texture.height
-	self.group = theme.get_texture_group(texture, group)
+	self.group = ThemeTextureGroup(texture, group)
 	self.vertex_list = batch.add(4, gl.GL_QUADS, self.group,
 				     ('v2i', self._get_vertices()),
 				     ('c4B', color * 4),
@@ -77,7 +90,6 @@ class TextureGraphicElement:
     def delete(self):
 	self.vertex_list.delete()
 	self.vertex_list = None
-	self.group.delete()
 	self.group = None
 
     def update(self, x, y, width, height):
@@ -90,7 +102,7 @@ class FrameTextureGraphicElement:
 		 color, batch, group):
 	self.x = self.y = 0
 	self.width, self.height = texture.width, texture.height
-	self.group = theme.get_texture_group(texture, group)
+	self.group = ThemeTextureGroup(texture, group)
 	self.outer_texture = texture
 	self.inner_texture = inner_texture
 	self.margins = margins
@@ -148,7 +160,6 @@ class FrameTextureGraphicElement:
     def delete(self):
 	self.vertex_list.delete()
 	self.vertex_list = None
-	self.group.delete()
 	self.group = None
 
     def update(self, x, y, width, height):
@@ -188,33 +199,6 @@ class ScopedDict(dict):
 	    dict.__setitem__(self, key, ScopedDict(value, self))
 	else:
 	    dict.__setitem__(self, key, value)
-
-class ThemeTextureGroup(pyglet.graphics.TextureGroup):
-    """
-    ThemeTextureGroup, in addition to setting the texture, also ensures that
-    we map to the nearest texel instead of trying to interpolate from nearby
-    texels.  This prevents 'blooming' along the edges.
-    """
-    def __init__(self, theme, texture, parent):
-	pyglet.graphics.TextureGroup.__init__(self, texture, parent)
-	self.theme = theme
-	self.count = 0
-
-    def increment(self):
-	self.count += 1
-
-    def set_state(self):
-	pyglet.graphics.TextureGroup.set_state(self)
-	gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MAG_FILTER,
-			   gl.GL_NEAREST)
-	gl.glTexParameteri(gl.GL_TEXTURE_2D, gl.GL_TEXTURE_MIN_FILTER,
-			   gl.GL_NEAREST)
-
-    def delete(self):
-	if self.count > 0:
-	    self.count -= 1
-	    if self.count == 0:
-		self.theme.delete_texture_group(self.parent, self.texture.id)
 
 class Theme(ScopedDict):
     """
@@ -312,14 +296,3 @@ class Theme(ScopedDict):
 	"""
 	texture = self._get_texture(filename)
 	return texture.get_region(x, y, width, height).get_texture()
-
-    def delete_texture_group(self, group, texture_id):
-	del self.groups[group][texture_id]
-	if not self.groups[group]:
-	    del self.groups[group]
-
-    def get_texture_group(self, texture, group):
-	retval = self.groups.setdefault(group, {}).setdefault(
-	    texture.id, ThemeTextureGroup(self, texture, group))
-	retval.increment()
-	return retval

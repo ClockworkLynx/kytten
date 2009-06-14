@@ -9,41 +9,29 @@ class HScrollbar(Control):
     A horizontal scrollbar.  Position is measured from 0.0 to 1.0, and bar
     size is set as a percentage of the maximum.
     """
-    def __init__(self, width, left, space, bar, right, left_max, right_max):
+    IMAGE_LEFT = ('hscrollbar', 'image-left')
+    IMAGE_SPACE = ('hscrollbar', 'image-space')
+    IMAGE_BAR = ('hscrollbar', 'image-bar')
+    IMAGE_RIGHT = ('hscrollbar', 'image-right')
+    IMAGE_LEFTMAX = ('hscrollbar', 'image-leftmax')
+    IMAGE_RIGHTMAX = ('hscrollbar', 'image-rightmax')
+
+    def __init__(self, width):
         """
-        Creates a new scrollbar.  At the outset, we are presented with maximum
-        width and the templates to use.
+        Creates a new scrollbar.
 
         @param width Width of the area for which we are a scrollbar
-        @param left Template to generate left graphic element
-        @param space Template to generate space graphic element
-        @param bar Template to generate bar graphic element
-        @param right Template to generate right graphic element
-        @param left_max Template to generate left max graphic element
-        @param right_max Template to generate right max graphic element
         """
-        Control.__init__(self, width=width, height=left.height)
-        self.__init2__(width, left, space, bar, right, left_max, right_max)
+        Control.__init__(self, width=width, height=0)
+        self.__init2__(width)
 
-    def __init2__(self, width, left, space, bar, right, left_max, right_max):
+    def __init2__(self, width):
         """
         HScrollbar and VScrollbar share similiar data structures, which this
         function initializes.
 
         @param width Width of the area for which we are a scrollbar
-        @param left Template to generate left graphic element
-        @param space Template to generate space graphic element
-        @param bar Template to generate bar graphic element
-        @param right Template to generate right graphic element
-        @param left_max Template to generate left max graphic element
-        @param right_max Template to generate right max graphic element
         """
-        self.left_template = left
-        self.space_template = space
-        self.bar_template = bar
-        self.right_template = right
-        self.left_max_template = left_max
-        self.right_max_template = right_max
         self.left = None
         self.space = None
         self.right = None
@@ -58,34 +46,45 @@ class HScrollbar(Control):
         """
         Return area of the left button (x, y, width, height)
         """
-        return self.x, self.y, self.left_template.width, self.height
+        if self.left is not None:
+            return self.x, self.y, self.left.width, self.height
+        else:
+            return self.x, self.y, 0, 0
 
     def _get_right_region(self):
         """
         Return area of the right button (x, y, width, height)
         """
-        return (self.x + self.width - self.right_template.width, self.y,
-                self.right_template.width, self.height)
+        if self.right is not None:
+            return (self.x + self.width - self.right.width, self.y,
+                    self.right.width, self.height)
+        else:
+            return self.x + self.width, self.y, 0, 0
 
     def _get_space_region(self):
         """
         Return area of the space in which the bar moves
         (x, y, width, height)
         """
-        return (self.x + self.left_template.width, self.y,
-                self.width - self.left_template.width -
-                    self.right_template.width,
-                self.height)
+        if self.left is not None and self.right is not None:
+            return (self.x + self.left.width, self.y,
+                    self.width - self.left.width - self.right.width,
+                    self.height)
+        else:
+            return self.x, self.y, self.width, self.height
 
     def _get_bar_region(self):
         """
         Return area of the bar within the scrollbar (x, y, width, height)
         """
+        if self.left is not None and self.right is not None:
+            left_width = self.left.width
+            right_width = self.right.width
+        else:
+            left_width = right_width = 0
         self.pos = max(min(self.pos, 1.0 - self.bar_width), 0.0)
-        space_width = self.width - self.left_template.width \
-                    - self.right_template.width
-        return (int(self.x + self.left_template.width +
-                    self.pos * space_width),
+        space_width = self.width - left_width - right_width
+        return (int(self.x + left_width + self.pos * space_width),
                 self.y,
                 int(self.bar_width * space_width),
                 self.height)
@@ -254,25 +253,33 @@ class HScrollbar(Control):
         """
         if self.left is None:
             if self.pos > 0.0:
-                self.left = self.left_template.generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
+                component, image = self.IMAGE_LEFT
             else:
-                self.left = self.left_max_template.generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
-            self.height = self.left.height
+                component, image = self.IMAGE_LEFTMAX
+            self.left = dialog.theme[component][image].generate(
+                dialog.theme[component]['gui_color'],
+                dialog.batch, dialog.fg_group)
+
+            # Left button is our basis for minimum dimension
+            self.width, self.height = self.left.width, self.left.height
         if self.space is None:
-            self.space = self.space_template.generate(
-                dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
+            component, image = self.IMAGE_SPACE
+            self.space = dialog.theme[component][image].generate(
+                dialog.theme[component]['gui_color'],
+                dialog.batch, dialog.fg_group)
         if self.bar is None:
-            self.bar = self.bar_template.generate(
-                dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
+            component, image = self.IMAGE_BAR
+            self.bar = dialog.theme[component][image].generate(
+                dialog.theme[component]['gui_color'],
+                dialog.batch, dialog.fg_group)
         if self.right is None:
-            if self.pos <= 1.0 - self.bar_width:
-                self.right = self.right_template.generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
+            if self.pos < 1.0 - self.bar_width:
+                component, image = self.IMAGE_RIGHT
             else:
-                self.right = self.right_max_template.generate(
-                    dialog.theme['gui_color'], dialog.batch, dialog.fg_group)
+                component, image = self.IMAGE_RIGHTMAX
+            self.right = dialog.theme[component][image].generate(
+                dialog.theme[component]['gui_color'],
+                dialog.batch, dialog.fg_group)
 
 class VScrollbar(HScrollbar):
     """
@@ -280,48 +287,61 @@ class VScrollbar(HScrollbar):
     is set as a percentage of the maximum.  Note that left is top, and
     right is bottom, from the viewpoint of the VScrollbar.
     """
-    def __init__(self, height, up, space, bar, down, up_max, down_max):
+    IMAGE_LEFT = ('vscrollbar', 'image-up')
+    IMAGE_SPACE = ('vscrollbar', 'image-space')
+    IMAGE_BAR = ('vscrollbar', 'image-bar')
+    IMAGE_RIGHT = ('vscrollbar', 'image-down')
+    IMAGE_LEFTMAX = ('vscrollbar', 'image-upmax')
+    IMAGE_RIGHTMAX = ('vscrollbar', 'image-downmax')
+
+    def __init__(self, height):
         """
         Creates a new scrollbar.  At the outset, we are presented with maximum
         height and the templates to use.
 
         @param height Height of the area for which we are a scrollbar
-        @param up Template to generate up graphic element
-        @param space Template to generate space graphic element
-        @param bar Template to generate bar graphic element
-        @param down Template to generate down graphic element
-        @param up_max Template to generate up max graphic element
-        @param down_max Template to generate down max graphic element
         """
-        Control.__init__(self, width=up.width, height=height)
-        self.__init2__(height, up, space, bar, down, up_max, down_max)
+        Control.__init__(self, width=0, height=height)
+        self.__init2__(height)
 
     def _get_left_region(self):
         """Returns the area occupied by the up button
         (x, y, width, height)"""
-        return (self.x, self.y + self.height - self.left_template.height,
-                self.width, self.left_template.height)
+        if self.left is not None:
+            return (self.x, self.y + self.height - self.left.height,
+                    self.width, self.left.height)
+        else:
+            return self.x, self.y, 0, 0
 
     def _get_right_region(self):
         """Returns the area occupied by the down button
         (x, y, width, height)"""
-        return (self.x, self.y, self.width, self.right_template.height)
+        if self.right is not None:
+            return self.x, self.y, self.width, self.right.height
+        else:
+            return self.x, self.y, 0, 0
 
     def _get_space_region(self):
         """Returns the area occupied by the space between up and down
         buttons (x, y, width, height)"""
-        return (self.x,
-                self.y + self.right_template.height,
-                self.width,
-                self.height - self.left_template.width -
-                    self.right_template.width)
+        if self.left is not None and self.right is not None:
+            return (self.x,
+                    self.y + self.right.height,
+                    self.width,
+                    self.height - self.left.width - self.right.width)
+        else:
+            return self.x, self.y, self.width, self.height
 
     def _get_bar_region(self):
         """Returns the area occupied by the bar (x, y, width, height)"""
+        if self.left is not None and self.right is not None:
+            left_height = self.left.height
+            right_height = self.right.height
+        else:
+            left_height = right_height = 0
         self.pos = max(min(self.pos, 1.0 - self.bar_width), 0.0)
-        space_height = self.height - self.left_template.height \
-                     - self.right_template.height
-        top = self.y + self.height - self.left_template.height
+        space_height = self.height - left_height - right_height
+        top = self.y + self.height - left_height
         return (self.x, int(top - (self.pos + self.bar_width) * space_height),
                 self.width, int(self.bar_width * space_height))
 
