@@ -96,7 +96,8 @@ class Frame(Wrapper):
     Frame draws an untitled frame which encloses the dialog's content.
     """
     def __init__(self, content=None, component="frame", image_name="image",
-                 is_expandable=False, anchor=ANCHOR_CENTER):
+                 is_expandable=False, anchor=ANCHOR_CENTER,
+                 use_bg_group=False):
         """
         Creates a new Frame surrounding a widget or layout.
         """
@@ -105,6 +106,7 @@ class Frame(Wrapper):
         self.frame = None
         self.component = component
         self.image_name = image_name
+        self.use_bg_group = use_bg_group
 
     def delete(self):
         """
@@ -150,10 +152,14 @@ class Frame(Wrapper):
         """
         Wrapper.size(self, dialog)
         if self.frame is None:
+            if self.use_bg_group:
+                group = dialog.bg_group
+            else:
+                group = dialog.panel_group
             template = dialog.theme[self.component][self.image_name]
             self.frame = template.generate(dialog.theme['gui_color'],
                                            dialog.batch,
-                                           dialog.panel_group)
+                                           group)
         self.width, self.height = self.frame.get_needed_size(
             self.content.width, self.content.height)
 
@@ -171,8 +177,6 @@ class TitleFrame(VerticalLayout):
             ], padding=0)
 
 class SectionHeader(HorizontalLayout):
-    # TODO(lynx): there's a weird bug where sometimes the underline beneath
-    # the section header doesn't display properly.
     def __init__(self, title, align=HALIGN_CENTER):
         if align == HALIGN_LEFT:
             left_expand = False
@@ -187,7 +191,8 @@ class SectionHeader(HorizontalLayout):
         HorizontalLayout.__init__(self, content=[
                 Graphic("section", "image-left", is_expandable=left_expand),
                 Frame(Label(title, component="section"),
-                      component="section", image_name="image-center"),
+                      component="section", image_name="image-center",
+                      use_bg_group=True),
                 Graphic("section", "image-right", is_expandable=right_expand),
             ], align=VALIGN_BOTTOM, padding=0)
 
@@ -217,7 +222,8 @@ class FoldingSection(Control, VerticalLayout):
             Frame(HorizontalLayout([
                       self.book,
                       Label(title, component="section"),
-                  ]), component="section", image_name="image-center"),
+                  ]), component="section", image_name="image-center",
+                  use_bg_group=True),
             Graphic("section", "image-right", is_expandable=right_expand),
             ], align=VALIGN_BOTTOM, padding=0)
         layout = [self.header]

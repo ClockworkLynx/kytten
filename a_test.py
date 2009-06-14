@@ -14,13 +14,13 @@ from background import Background
 
 # Default theme, gold-colored
 theme = kytten.Theme(os.getcwd(), override={
-    "gui_color": [255, 235, 128, 255],
+    "gui_color": [64, 128, 255, 255],
     "font_size": 14
 })
 
 # Default theme, blue-colored
 theme2 = kytten.Theme(theme, override={
-    "gui_color": [64, 128, 255, 255],
+    "gui_color": [255, 235, 128, 255],
     "font_size": 12
 })
 
@@ -78,7 +78,7 @@ def create_form_dialog():
 		    [kytten.Label("Hobby"), kytten.Input("hobby",
 							 "Programming")],
 		]),
-		kytten.Checkbox("Full-Time Employee", id="employee"),
+		kytten.Checkbox("Full-Time", id="fulltime"),
 		kytten.Checkbox("Married", id="married"),
 		kytten.SectionHeader("Actions",
 				     align=kytten.HALIGN_LEFT),
@@ -126,7 +126,7 @@ def create_scrollable_dialog():
 
 def create_folding_dialog():
     document1 = pyglet.text.decode_attributed("""
-You can click on the sections below to open them up.
+Click on the section headers below to open them up.
 Jellicle Cats is, of course, copyrighted by T. S. Eliot.
 """)
     document2 = pyglet.text.decode_attributed("""
@@ -216,7 +216,7 @@ if __name__ == '__main__':
 	    kytten.VerticalLayout([
 		kytten.Label("Select dialog to show"),
 		kytten.Menu(options=["Document", "Form", "Scrollable",
-				     "Folding"],
+				     "Folding", "Test"],
 			    on_select=on_select),
 	    ]),
 	),
