@@ -159,7 +159,7 @@ class Scrollable(Wrapper, DialogEventManager):
             y += self.hscrollbar.height
         if self.vscrollbar is not None:
             self.vscrollbar.layout(
-                x + (self.max_width or self.content_width), y)
+                x + self.content_width, y)
 
         # Set the scissor group
         self.root_group.x, self.root_group.y = x - 1, y - 1

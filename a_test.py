@@ -174,6 +174,19 @@ And wait for the Jellicle moon to rise
 	theme=theme2, on_escape=on_escape)
     window.push_handlers(dialog)
 
+def create_file_load_dialog():
+    dialog = None
+
+    def on_select(filename):
+	print "File load: %s" % filename
+	on_escape(dialog)
+
+    dialog = kytten.FileLoadDialog(  # by default, path is current working dir
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape, on_select=on_select)
+    window.push_handlers(dialog)
+
 def on_select(choice):
     if choice == 'Document':
 	create_document_dialog()
@@ -183,6 +196,8 @@ def on_select(choice):
 	create_scrollable_dialog()
     elif choice == 'Folding':
 	create_folding_dialog()
+    elif choice == 'File Load':
+	create_file_load_dialog()
     else:
 	print "Unexpected menu selection: %s" % choice
 
@@ -216,7 +231,7 @@ if __name__ == '__main__':
 	    kytten.VerticalLayout([
 		kytten.Label("Select dialog to show"),
 		kytten.Menu(options=["Document", "Form", "Scrollable",
-				     "Folding", "Test"],
+				     "Folding", "File Load"],
 			    on_select=on_select),
 	    ]),
 	),

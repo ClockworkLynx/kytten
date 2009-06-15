@@ -48,6 +48,7 @@ from button import Button
 from checkbox import Checkbox
 from dialog import Dialog
 from document import Document
+from file_dialogs import FileLoadDialog
 from frame import Frame, TitleFrame, Wrapper, SectionHeader, FoldingSection
 from layout import GridLayout, HorizontalLayout, VerticalLayout, FreeLayout
 from menu import Menu

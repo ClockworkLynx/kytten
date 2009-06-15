@@ -161,3 +161,11 @@ class Menu(VerticalLayout):
         if self.on_select is not None:
             self.on_select(text)
 
+    def set_options(self, dialog, options):
+        self.selected = None
+        menu_options = [MenuOption(option,
+                                   anchor=(VALIGN_CENTER, self.align),
+                                   menu=self) for option in options]
+        self.options = dict(zip(options, menu_options))
+        self.set(dialog, menu_options)
+        dialog.set_needs_layout()

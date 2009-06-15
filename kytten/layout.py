@@ -143,6 +143,7 @@ class VerticalLayout(Widget):
         @param dialog The Dialog which contains the layout
         @param item The Widget to be removed
         """
+        item.delete()
         self.content.remove(item)
         dialog.needs_layout = True
 
@@ -185,7 +186,7 @@ class VerticalLayout(Widget):
         """
         self.delete()
         self.content = content
-        self.dialog.set_needs_layout()
+        dialog.set_needs_layout()
 
     def size(self, dialog):
         """

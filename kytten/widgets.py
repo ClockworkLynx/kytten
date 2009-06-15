@@ -281,6 +281,7 @@ class Graphic(Widget):
         self.image_name = image_name
         self.expandable=is_expandable
         self.graphic = None
+        self.min_width = self.min_height = 0
 
     def delete(self):
         if self.graphic is not None:
@@ -306,7 +307,9 @@ class Graphic(Widget):
                 dialog.theme[self.component]['gui_color'],
                 dialog.batch,
                 dialog.fg_group)
-        self.width, self.height = self.graphic.width, self.graphic.height
+            self.min_width = self.graphic.width
+            self.min_height = self.graphic.height
+        self.width, self.height = self.min_width, self.min_height
 
 class Label(Widget):
     """A wrapper around a simple text label."""
