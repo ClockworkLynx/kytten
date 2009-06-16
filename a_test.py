@@ -42,7 +42,11 @@ scrollable window!
 {align "right"}Or go right.{align "left"}
 
 {color (128, 255, 128, 255)}
-Express yourself colorfully!
+Express
+{color (255, 128, 128, 255)}
+yourself
+{color (128, 128, 255, 255)}
+colorfully!
 {color (255, 255, 255, 255}
 ''')
 
@@ -174,6 +178,27 @@ And wait for the Jellicle moon to rise
 	theme=theme2, on_escape=on_escape)
     window.push_handlers(dialog)
 
+def create_dropdown_dialog():
+    def on_select(choice):
+	print "Selected: %s" % choice
+
+    dialog = kytten.Dialog(
+	kytten.Frame(
+	    kytten.VerticalLayout([
+		kytten.Label("Select a letter:"),
+		kytten.Dropdown(['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon',
+				 'Zeta', 'Eta', 'Theta', 'Iota', 'Kappa',
+				 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron',
+				 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
+				 'Phi', 'Chi', 'Psi', 'Omega'],
+				on_select=on_select)
+	    ]),
+	),
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape)
+    window.push_handlers(dialog)
+
 def create_file_load_dialog():
     dialog = None
 
@@ -182,6 +207,21 @@ def create_file_load_dialog():
 	on_escape(dialog)
 
     dialog = kytten.FileLoadDialog(  # by default, path is current working dir
+	extensions=['.png', '.jpg', '.bmp', '.gif'],
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape, on_select=on_select)
+    window.push_handlers(dialog)
+
+def create_file_save_dialog():
+    dialog = None
+
+    def on_select(filename):
+	print "File save: %s" % filename
+	on_escape(dialog)
+
+    dialog = kytten.FileSaveDialog(  # by default, path is current working dir
+	extensions=['.png', '.jpg', '.bmp', '.gif'],
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape, on_select=on_select)
@@ -196,8 +236,12 @@ def on_select(choice):
 	create_scrollable_dialog()
     elif choice == 'Folding':
 	create_folding_dialog()
+    elif choice == 'Dropdown':
+	create_dropdown_dialog()
     elif choice == 'File Load':
 	create_file_load_dialog()
+    elif choice == 'File Save':
+	create_file_save_dialog()
     else:
 	print "Unexpected menu selection: %s" % choice
 
@@ -231,7 +275,8 @@ if __name__ == '__main__':
 	    kytten.VerticalLayout([
 		kytten.Label("Select dialog to show"),
 		kytten.Menu(options=["Document", "Form", "Scrollable",
-				     "Folding", "File Load"],
+				     "Folding", "Dropdown",
+				     "File Load", "File Save"],
 			    on_select=on_select),
 	    ]),
 	),

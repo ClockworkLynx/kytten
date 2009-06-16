@@ -183,5 +183,19 @@
             "src": "book.png"
         },
         "font_size": 14
+    },
+    "dropdown": {
+        "image": {
+            "src": "dropdown.png",
+            "stretch": [4, 8, 20, 5],
+            "padding": [6, 10, 6, 10]
+        }
+    },
+    "pulldown": {
+        "image": {
+            "src": "pulldown.png",
+            "stretch": [3, 3, 10, 10],
+            "padding": [4, 4, 4, 4]
+        }
     }
 }

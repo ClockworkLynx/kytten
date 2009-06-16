@@ -39,7 +39,7 @@ class DialogEventManager(Control):
             else:
                 dir = 1
 
-            if self.focus is not None:
+            if self.focus is not None and self.focus in focusable:
                 index = focusable.index(self.focus)
             else:
                 index = 0 - dir
@@ -277,7 +277,7 @@ class Dialog(Wrapper, DialogEventManager):
     handles resize events accordingly.
     """
     def __init__(self, content=None, window=None, batch=None, group=None,
-                 anchor=ANCHOR_CENTER, offset=(0, 0),
+                 anchor=ANCHOR_CENTER, offset=(0, 0), parent=None,
                  theme=None, movable=True, on_enter=None, on_escape=None):
         """
         Creates a new dialog.
@@ -368,8 +368,15 @@ class Dialog(Wrapper, DialogEventManager):
         self.controls = self._get_controls()
         self.control_map = dict([(x, x.id) for x in self.controls
                                  if x.id is not None])
+        if self.hover is not None and self.hover not in self.controls:
+            self.set_hover(self, None)
+        if self.focus is not None and self.focus not in self.controls:
+            self.set_focus(self, None)
 
         self.needs_layout = False
+
+    def get_root(self):
+        return self
 
     def get_value(self, id):
         widget = self.get_widget(id)

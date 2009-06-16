@@ -6,45 +6,64 @@ import os
 import pyglet
 from pyglet import gl
 
+from button import Button
 from dialog import Dialog
 from frame import Frame, SectionHeader
-from layout import VerticalLayout
-from layout import ANCHOR_CENTER, HALIGN_LEFT
-from menu import Menu
+from layout import VerticalLayout, HorizontalLayout
+from layout import ANCHOR_CENTER, HALIGN_LEFT, VALIGN_BOTTOM
+from menu import Menu, Dropdown
 from scrollable import Scrollable
+from text_input import Input
+from widgets import Label
 
 class FileLoadDialog(Dialog):
     def __init__(self, path=os.getcwd(), extensions=[], title="Select File",
-                 width=600, height=300, window=None, batch=None, group=None,
+                 width=540, height=300, window=None, batch=None, group=None,
                  anchor=ANCHOR_CENTER, offset=(0, 0),
                  theme=None, movable=True, on_select=None, on_escape=None):
         self.path = path
         self.extensions = extensions
+        self.title = title
         self.on_select = on_select
-        self.saved_dialog = None
         self.selected_file = None
         self._set_files()
 
+        def on_parent_menu_select(choice):
+            self._select_file(self.parents_dict[choice])
+
         def on_menu_select(choice):
             self._select_file(self.files_dict[choice])
-        self.menu = Menu(options=self.files, on_select=on_menu_select)
 
-        content = Frame(
-            Scrollable(
-                VerticalLayout([
-                    SectionHeader(title),
-                    self.menu,
-                ], align=HALIGN_LEFT),
-                width=width, height=height))
+        self.dropdown = Dropdown(options=self.parents,
+                                 selected=self.parents[-1],
+                                 align=VALIGN_BOTTOM,
+                                 on_select=on_parent_menu_select)
+        self.menu = Menu(options=self.files, align=HALIGN_LEFT,
+                         on_select=on_menu_select)
+        self.scrollable = Scrollable(
+            VerticalLayout([self.dropdown, self.menu], align=HALIGN_LEFT),
+            width=width, height=height)
+
+        content = self._get_content()
         Dialog.__init__(self, content, window=window, batch=batch, group=group,
                         anchor=anchor, offset=offset, theme=theme,
                         movable=movable, on_escape=on_escape)
+
+    def _get_content(self):
+        return Frame(
+            VerticalLayout([
+                SectionHeader(self.title),
+                self.scrollable,
+            ], align=HALIGN_LEFT)
+        )
 
     def _select_file(self, filename):
         if os.path.isdir(filename):
             self.path = filename
             self._set_files()
-            self.menu.set_options(self.saved_dialog, self.files)
+            self.dropdown.set_options(self.scrollable, self.parents,
+                                      selected=self.parents[-1])
+            self.menu.set_options(self.scrollable, self.files)
         else:
             self.selected_file = filename
             if self.on_select is not None:
@@ -55,12 +74,22 @@ class FileLoadDialog(Dialog):
         filenames = glob.glob(os.path.join(self.path, '*'))
 
         # First, a list of directories
-        if os.path.split(self.path)[1]:  # do we have a parent dir?
-            files = [('(parent dir)', os.path.split(self.path)[0])]
-        else:  # Otherwise, don't show a parent dir
-            files = []
-        files += [("%s (dir)" % os.path.basename(x), x) for x in filenames
-                  if os.path.isdir(x)]
+        self.parents = []
+        self.parents_dict = {}
+        path = self.path
+        index = 1
+        while 1:
+            name = "%d %s" % (index, os.path.basename(path) or path)
+            self.parents_dict[name] = path
+            self.parents.append(name)
+            index += 1
+            path, child = os.path.split(path)
+            if not child:
+                break
+        self.parents.reverse()
+
+        files = [("%s (dir)" % os.path.basename(x), x) for x in filenames
+                 if os.path.isdir(x)]
 
         # Now add the files that match the extensions
         if self.extensions:
@@ -94,5 +123,63 @@ class FileLoadDialog(Dialog):
         return self.selected_file
 
     def size(self, dialog):
-        self.saved_dialog = dialog
         Dialog.size(self, dialog)
+
+class FileSaveDialog(FileLoadDialog):
+    def __init__(self, *args, **kwargs):
+        self.text_input = Input()
+
+        # Set up buttons to be shown in our contents
+        def on_save():
+            self._do_select()
+        self.save_button = Button("Save", on_click=on_save)
+
+        def on_cancel():
+            self._do_cancel()
+        self.cancel_button = Button("Cancel", on_click=on_cancel)
+
+        FileLoadDialog.__init__(self, *args, **kwargs)
+
+        # Setup our event handlers
+        def on_enter(dialog):
+            self._do_select()
+        self.on_enter = on_enter
+        self.real_on_select = self.on_select
+
+        def on_select(filename):
+            self.text_input.set_text(filename)
+        self.on_select = on_select
+
+    def _do_cancel(self):
+        if self.on_escape is not None:
+            self.on_escape(self)
+        else:
+            self.delete()
+            self.window.remove_handlers(self)
+
+    def _do_select(self):
+        filename = self.text_input.get_text()
+        path, base = os.path.split(filename)
+        if not base:
+            filename = None
+        elif not path:
+            filename = os.path.join(self.path, filename)
+        if self.real_on_select is not None:
+            if self.id is not None:
+                self.real_on_select(self.id, filename)
+            else:
+                self.real_on_select(filename)
+
+    def _get_content(self):
+        return Frame(
+            VerticalLayout([
+                SectionHeader(self.title),
+                self.scrollable,
+                Label("Filename:"),
+                self.text_input,
+                HorizontalLayout([
+                    self.save_button, None, self.cancel_button
+                ]),
+            ], align=HALIGN_LEFT)
+        )
+

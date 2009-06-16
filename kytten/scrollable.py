@@ -88,6 +88,9 @@ class Scrollable(Wrapper, DialogEventManager):
         self.needs_layout = False
         self.controls = []
 
+        # Keep a copy of the parent dialog for future use
+        self.saved_dialog = None
+
     def _get_controls(self):
         """
         We represent ourself as a Control to the Dialog, but we pass through
@@ -115,13 +118,6 @@ class Scrollable(Wrapper, DialogEventManager):
 
     def expand(self, width, height):
         if self.content.is_expandable():
-            content_width = max(self.max_width or
-                                width-self.vscrollbar_width,
-                                self.content.width)
-            content_height = max(self.max_height or
-                                 height-self.hscrollbar_height,
-                                 self.content.height)
-            self.content.expand(content_width, content_height)
             if self.vscrollbar is not None:
                 self.content_width = width - self.vscrollbar_width
             else:
@@ -129,8 +125,16 @@ class Scrollable(Wrapper, DialogEventManager):
             if self.hscrollbar is not None:
                 self.content_height = height - self.hscrollbar_height
             else:
-                self.hscrollbar_height = height
+                self.content_height = height
+            self.content.expand(max(self.content_width, self.content.width),
+                                max(self.content_height, self.content.height))
         self.width, self.height = width, height
+
+    def get_root(self):
+        if self.saved_dialog:
+            return self.saved_dialog.get_root()
+        else:
+            return self
 
     def hit_test(self, x, y):
         """
@@ -213,6 +217,7 @@ class Scrollable(Wrapper, DialogEventManager):
 
         @param dialog Dialog which contains us
         """
+        self.saved_dialog = dialog
         if self.is_fixed_size:
             self.width, self.height = self.max_width, self.max_height
 
@@ -274,4 +279,8 @@ class Scrollable(Wrapper, DialogEventManager):
             self.width += self.vscrollbar.width
 
         self.controls = self.content._get_controls()
+        if self.hover is not None and self.hover not in self.controls:
+            self.set_hover(self, None)
+        if self.focus is not None and self.focus not in self.controls:
+            self.set_focus(self, None)
 
