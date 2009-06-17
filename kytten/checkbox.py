@@ -80,18 +80,18 @@ class Checkbox(Control):
         height = font.ascent - font.descent
         self.label.y = y + self.height/2 - height/2 - font.descent
 
-    def on_gain_highlight(self, dialog):
-        Control.on_gain_highlight(self, dialog)
-        self.size(dialog)
+    def on_gain_highlight(self):
+        Control.on_gain_highlight(self)
+        self.size(self.saved_dialog)
         self.highlight.update(self.x, self.y, self.width, self.height)
 
-    def on_lose_highlight(self, dialog):
-        Control.on_lose_highlight(self, dialog)
+    def on_lose_highlight(self):
+        Control.on_lose_highlight(self)
         if self.highlight is not None:
             self.highlight.delete()
             self.highlight = None
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         self.is_checked = not self.is_checked
         if self.on_click is not None:
             if self.id is not None:
@@ -101,7 +101,7 @@ class Checkbox(Control):
 
         # Delete the button to force it to be redrawn
         self.delete()
-        dialog.set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
         """
@@ -109,6 +109,7 @@ class Checkbox(Control):
 
         @param dialog Dialog which contains the Checkbox
         """
+        Control.size(self, dialog)
         if self.checkbox is None:
             if self.is_checked:
                 self.checkbox = dialog.theme['checkbox']['image-checked']\
@@ -137,3 +138,6 @@ class Checkbox(Control):
             self.label.content_width
         self.height = max(self.checkbox.height, height)
 
+    def teardown(self):
+        self.on_click = None
+        Control.teardown(self)

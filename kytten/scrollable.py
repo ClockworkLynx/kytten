@@ -7,6 +7,7 @@ from pyglet import gl
 from dialog import DialogEventManager
 from frame import Wrapper
 from scrollbar import HScrollbar, VScrollbar
+from widgets import Widget
 
 class ScrollableGroup(pyglet.graphics.Group):
     """
@@ -87,9 +88,6 @@ class Scrollable(Wrapper, DialogEventManager):
         self.highlight_group = None
         self.needs_layout = False
         self.controls = []
-
-        # Keep a copy of the parent dialog for future use
-        self.saved_dialog = None
 
     def _get_controls(self):
         """
@@ -182,34 +180,37 @@ class Scrollable(Wrapper, DialogEventManager):
                                        self.content.height)
         self.content.layout(left, top)
 
-    def on_lose_focus(self, dialog):
+        self.needs_layout = False
+
+    def on_lose_focus(self):
         """
         If we're no longer focused by the Dialog, remove our own focus
         """
-        self.set_focus(dialog, None)
+        self.set_focus(None)
 
-    def on_lose_highlight(self, dialog):
+    def on_lose_highlight(self):
         """
         If we're no longer highlighted by the Dialog, remove our own
         highlight
         """
-        self.set_hover(dialog, None)
+        self.set_hover(None)
 
-    def on_update(self, dialog, dt):
+    def on_update(self, dt):
         """
         On updates, we redo the layout if scrollbars have changed position
 
         @param dt Time passed since last update event (in seconds)
         """
         if self.needs_layout:
-            self.size(dialog)
+            self.size(self.saved_dialog)
             self.layout(self.x, self.y)
-            self.needs_layout = False
         for control in self.controls:
-            control.dispatch_event('on_update', self, dt)
+            control.dispatch_event('on_update', dt)
 
     def set_needs_layout(self):
         self.needs_layout = True
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
         """
@@ -217,7 +218,7 @@ class Scrollable(Wrapper, DialogEventManager):
 
         @param dialog Dialog which contains us
         """
-        self.saved_dialog = dialog
+        Widget.size(self, dialog)
         if self.is_fixed_size:
             self.width, self.height = self.max_width, self.max_height
 
@@ -280,7 +281,11 @@ class Scrollable(Wrapper, DialogEventManager):
 
         self.controls = self.content._get_controls()
         if self.hover is not None and self.hover not in self.controls:
-            self.set_hover(self, None)
+            self.set_hover(None)
         if self.focus is not None and self.focus not in self.controls:
-            self.set_focus(self, None)
+            self.set_focus(None)
 
+    def teardown(self):
+        self.hover = None
+        self.focus = None
+        Wrapper.teardown(self)

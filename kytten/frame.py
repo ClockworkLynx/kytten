@@ -85,11 +85,17 @@ class Wrapper(Widget):
 
         @param dialog The Dialog which contains the Wrapper
         """
+        Widget.size(self, dialog)
         if self.content is not None:
             self.content.size(dialog)
             self.width, self.height = self.content.width, self.content.height
         else:
             self.width = self.height = 0
+
+    def teardown(self):
+        self.content.teardown()
+        self.content = None
+        Widget.teardown(self)
 
 class Frame(Wrapper):
     """
@@ -241,13 +247,17 @@ class FoldingSection(Control, VerticalLayout):
     def hit_test(self, x, y):
         return self.header.hit_test(x, y)
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         self.is_open = not self.is_open
         self.book.delete()
         self.book.image_name = self._get_image_name()
         if self.is_open:
-            self.add(dialog, self.folding_content)
+            self.add(self.folding_content)
         else:
-            self.remove(dialog, self.folding_content)
+            self.remove(self.folding_content)
             self.folding_content.delete()
-        dialog.set_needs_layout()
+
+    def teardown(self):
+        self.folding_content.teardown()
+        self.folding_content = None
+        VerticalLayout.teardown(self)

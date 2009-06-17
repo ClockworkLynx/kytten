@@ -38,6 +38,7 @@ class Widget:
         self.x = self.y = 0
         self.width = width
         self.height = height
+        self.saved_dialog = None
 
     def _get_controls(self):
         """
@@ -108,7 +109,15 @@ class Widget:
 
         @param dialog The Dialog which contains this Widget
         """
-        pass
+        if dialog != self:
+            self.saved_dialog = dialog
+
+    def teardown(self):
+        """
+        Removes all resources and pointers to other GUI widgets.
+        """
+        self.delete()
+        self.saved_dialog = None
 
 class Control(Widget, pyglet.event.EventDispatcher):
     """
@@ -151,16 +160,16 @@ class Control(Widget, pyglet.event.EventDispatcher):
     def is_highlight(self):
         return self.is_highlight
 
-    def on_gain_focus(self, dialog):
+    def on_gain_focus(self):
         self.is_focus = True
 
-    def on_gain_highlight(self, dialog):
+    def on_gain_highlight(self):
         self.is_highlight = True
 
-    def on_lose_focus(self, dialog):
+    def on_lose_focus(self):
         self.is_focus = False
 
-    def on_lose_highlight(self, dialog):
+    def on_lose_highlight(self):
         self.is_highlight = False
 
 # Controls can potentially accept most of the events defined for the window,
@@ -229,6 +238,7 @@ class Test(Widget):
 
         @param dialog The Dialog within which we are contained
         """
+        Widget.size(self, dialog)
         if self.vertex_list is None:
             self.vertex_list = dialog.batch.add_indexed(4, gl.GL_LINES,
                 dialog.fg_group,
@@ -269,6 +279,7 @@ class Spacer(Widget):
         """Spacer shrinks down to the minimum size for placement.
 
         @param dialog Dialog which contains us"""
+        Widget.size(self, dialog)
         self.width, self.height = self.min_width, self.min_height
 
 class Graphic(Widget):
@@ -301,6 +312,7 @@ class Graphic(Widget):
         self.graphic.update(x, y, self.width, self.height)
 
     def size(self, dialog):
+        Widget.size(self, dialog)
         if self.graphic is None:
             template = dialog.theme[self.component][self.image_name]
             self.graphic = template.generate(
@@ -337,6 +349,7 @@ class Label(Widget):
         self.label.y = y - font.descent
 
     def size(self, dialog):
+        Widget.size(self, dialog)
         if self.label is None:
             self.label = pyglet.text.Label(
                 self.text, bold=self.bold, italic=self.italic,

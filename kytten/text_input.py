@@ -57,20 +57,20 @@ class Input(Control):
         self.text_layout.x = x + self.padding
         self.text_layout.y = y + self.padding
 
-    def on_gain_highlight(self, dialog):
-        Control.on_gain_highlight(self, dialog)
-        self.set_highlight(dialog)
+    def on_gain_highlight(self):
+        Control.on_gain_highlight(self)
+        self.set_highlight()
 
-    def on_gain_focus(self, dialog):
-        Control.on_gain_focus(self, dialog)
-        self.set_highlight(dialog)
+    def on_gain_focus(self):
+        Control.on_gain_focus(self)
+        self.set_highlight()
         if self.caret is not None:
             self.caret.visible = True
             self.caret.mark = 0
             self.caret.position = len(self.document.text)
 
-    def on_lose_focus(self, dialog):
-        Control.on_lose_focus(self, dialog)
+    def on_lose_focus(self):
+        Control.on_lose_focus(self)
         self.remove_highlight()
         if self.caret is not None:
             self.caret.visible = False
@@ -81,23 +81,23 @@ class Input(Control):
             else:
                 self.on_input(self.get_text())
 
-    def on_lose_highlight(self, dialog):
-        Control.on_lose_highlight(self, dialog)
+    def on_lose_highlight(self):
+        Control.on_lose_highlight(self)
         self.remove_highlight()
 
-    def on_mouse_drag(self, dialog, x, y, dx, dy, buttons, modifiers):
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         return self.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         return self.caret.on_mouse_press(x, y, button, modifiers)
 
-    def on_text(self, dialog, text):
+    def on_text(self, text):
         self.caret.on_text(text)
 
-    def on_text_motion(self, dialog, motion):
+    def on_text_motion(self, motion):
         return self.caret.on_text_motion(motion)
 
-    def on_text_motion_select(self, dialog, motion):
+    def on_text_motion_select(self, motion):
         return self.caret.on_text_motion_select(motion)
 
     def set_text(self, text):
@@ -110,15 +110,17 @@ class Input(Control):
                 self.highlight.delete()
                 self.highlight = None
 
-    def set_highlight(self, dialog):
+    def set_highlight(self):
         if self.highlight is None:
-            self.highlight = dialog.theme['input']['image-highlight'].\
-                generate(color=dialog.theme['highlight_color'],
-                         batch=dialog.batch,
-                         group=dialog.highlight_group)
+            self.highlight = self.saved_dialog.theme['input']\
+                ['image-highlight'].generate(
+                    color=self.saved_dialog.theme['highlight_color'],
+                    batch=self.saved_dialog.batch,
+                    group=self.saved_dialog.highlight_group)
             self.highlight.update(self.x, self.y, self.width, self.height)
 
     def size(self, dialog):
+        Control.size(self, dialog)
         self.document.set_style(0, len(self.document.text),
                     dict(color=dialog.theme['text_color'],
                          font_name=dialog.theme['font'],
@@ -147,8 +149,11 @@ class Input(Control):
                 batch=dialog.batch,
                 group=dialog.bg_group)
         if self.highlight is None and self.is_highlight:
-            self.set_highlight(dialog)
+            self.set_highlight()
 
         self.width, self.height = self.field.get_needed_size(
             needed_width, needed_height)
 
+    def teardown(self):
+        self.on_input = False
+        Control.teardown(self)

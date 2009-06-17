@@ -60,30 +60,31 @@ class MenuOption(Control):
         self.label.x = x
         self.label.y = y - font.descent
 
-    def on_gain_highlight(self, dialog):
-        Control.on_gain_highlight(self, dialog)
-        self.size(dialog) # to set up the highlight
+    def on_gain_highlight(self):
+        Control.on_gain_highlight(self)
+        self.size(self.saved_dialog)  # to set up the highlight
         if self.highlight is not None:
             self.highlight.update(self.x, self.y,
                                   self.menu.width, self.height)
 
-    def on_lose_highlight(self, dialog):
-        Control.on_lose_highlight(self, dialog)
+    def on_lose_highlight(self):
+        Control.on_lose_highlight(self)
         if self.highlight is not None:
             self.highlight.delete()
             self.highlight = None
 
-    def on_mouse_release(self, dialog, x, y, button, modifiers):
-        self.menu.select(dialog, self.text)
+    def on_mouse_release(self, x, y, button, modifiers):
+        self.menu.select(self.text)
 
-    def select(self, dialog):
+    def select(self):
         self.is_selected = True
         if self.label is not None:
             self.label.delete()
             self.label = None
-        dialog.get_root().set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
+        Control.size(self, dialog)
         if self.label is None:
             if self.is_selected:
                 self.label = pyglet.text.Label(self.text,
@@ -122,7 +123,7 @@ class MenuOption(Control):
                                  dialog.batch,
                                  dialog.highlight_group)
 
-    def unselect(self, dialog):
+    def unselect(self):
         self.is_selected = False
         if self.label is not None:
             self.label.delete()
@@ -130,7 +131,11 @@ class MenuOption(Control):
         if self.background is not None:
             self.background.delete()
             self.background = None
-        dialog.get_root().set_needs_layout()
+        self.saved_dialog.set_needs_layout()
+
+    def teardown(self):
+        self.menu = None
+        Control.teardown(self)
 
 class Menu(VerticalLayout):
     """
@@ -155,26 +160,30 @@ class Menu(VerticalLayout):
     def is_input(self):
         return True
 
-    def select(self, dialog, text):
+    def select(self, text):
         assert text in self.options
         if self.selected is not None:
-            self.options[self.selected].unselect(dialog)
+            self.options[self.selected].unselect()
         self.selected = text
         menu_option = self.options[text]
-        menu_option.select(dialog)
+        menu_option.select()
 
         if self.on_select is not None:
             self.on_select(text)
 
-    def set_options(self, dialog, options):
+    def set_options(self, options):
         self.delete()
         self.selected = None
         menu_options = [MenuOption(option,
                                    anchor=(VALIGN_CENTER, self.align),
                                    menu=self) for option in options]
         self.options = dict(zip(options, menu_options))
-        self.set(dialog, menu_options)
-        dialog.get_root().set_needs_layout()
+        self.set(menu_options)
+        self.saved_dialog.set_needs_layout()
+
+    def teardown(self):
+        self.on_select = None
+        VerticalLayout.teardown(self)
 
 class Dropdown(Control):
     def __init__(self, options=[], selected=None, id=None,
@@ -191,12 +200,11 @@ class Dropdown(Control):
         self.field = None
         self.label = None
         self.pulldown_menu = None
-        self.saved_dialog = None
 
     def _delete_pulldown_menu(self):
         if self.pulldown_menu is not None:
-            self.pulldown_menu.delete()
             self.pulldown_menu.window.remove_handlers(self.pulldown_menu)
+            self.pulldown_menu.teardown()
             self.pulldown_menu = None
 
     def delete(self):
@@ -214,12 +222,14 @@ class Dropdown(Control):
     def is_input(self):
         return True
 
-    def on_mouse_release(self, dialog, x, y, button, modifiers):
+    def on_mouse_release(self, x, y, button, modifiers):
         if self.pulldown_menu is not None:
             self._delete_pulldown_menu()  # if it's already up, close it
             return
 
         # Setup some callbacks for the dialog
+        root = self.saved_dialog.get_root()
+
         def on_escape(dialog):
             self._delete_pulldown_menu()
 
@@ -229,7 +239,7 @@ class Dropdown(Control):
                 self.label.delete()
                 self.label = None
             self._delete_pulldown_menu()
-            self.saved_dialog.get_root().set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
             if self.on_select is not None:
                 if self.id is not None:
@@ -238,8 +248,7 @@ class Dropdown(Control):
                     self.on_select(choice)
 
         # We'll need the root window to get window size
-        root_dialog = dialog.get_root()
-        width, height = root_dialog.window.get_size()
+        width, height = root.window.get_size()
 
         # Calculate the anchor point and location for the dialog
         if self.align == VALIGN_TOP:
@@ -260,11 +269,11 @@ class Dropdown(Control):
                            height=self.max_height),
                 component='pulldown'
             ),
-            window=root_dialog.window, batch=root_dialog.batch,
-            group=root_dialog.root_group.parent, theme=root_dialog.theme,
+            window=root.window, batch=root.batch,
+            group=root.root_group.parent, theme=root.theme,
             movable=False, anchor=anchor, offset=(x, y),
             on_escape=on_escape)
-        root_dialog.window.push_handlers(self.pulldown_menu)
+        root.window.push_handlers(self.pulldown_menu)
 
     def layout(self, x, y):
         Control.layout(self, x, y)
@@ -277,14 +286,14 @@ class Dropdown(Control):
         self.label.x = x
         self.label.y = y - font.descent
 
-    def set_options(self, dialog, options, selected=None):
+    def set_options(self, options, selected=None):
         self.delete()
         self.options = options
         self.selected = selected or self.options[0]
-        dialog.get_root().set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
-        self.saved_dialog = dialog  # save dialog for callback use
+        Control.size(self, dialog)
 
         if self.field is None:
             self.field = dialog.theme['dropdown']['image'].generate(
@@ -300,3 +309,8 @@ class Dropdown(Control):
         height = font.ascent - font.descent
         self.width, self.height = self.field.get_needed_size(
             self.label.content_width, height)
+
+    def teardown(self):
+        self.on_select = False
+        self._delete_pulldown_menu()
+        Control.teardown(self)

@@ -61,9 +61,9 @@ class FileLoadDialog(Dialog):
         if os.path.isdir(filename):
             self.path = filename
             self._set_files()
-            self.dropdown.set_options(self.scrollable, self.parents,
+            self.dropdown.set_options(self.parents,
                                       selected=self.parents[-1])
-            self.menu.set_options(self.scrollable, self.files)
+            self.menu.set_options(self.files)
         else:
             self.selected_file = filename
             if self.on_select is not None:
@@ -124,6 +124,10 @@ class FileLoadDialog(Dialog):
 
     def size(self, dialog):
         Dialog.size(self, dialog)
+
+    def teardown(self):
+        self.on_select = None
+        Dialog.teardown(self)
 
 class FileSaveDialog(FileLoadDialog):
     def __init__(self, *args, **kwargs):

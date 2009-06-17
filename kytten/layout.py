@@ -100,15 +100,14 @@ class VerticalLayout(Widget):
             controls += item._get_controls()
         return controls
 
-    def add(self, dialog, item):
+    def add(self, item):
         """
         Adds a new Widget to the layout.
 
-        @param dialog The Dialog which contains the layout
         @param item The Widget to be added
         """
         self.content.append(item or Spacer())
-        dialog.set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def delete(self):
         """Deletes all graphic elements within the layout."""
@@ -136,16 +135,15 @@ class VerticalLayout(Widget):
         """True if we contain expandable content."""
         return len(self.expandable) > 0
 
-    def remove(self, dialog, item):
+    def remove(self, item):
         """
         Removes a Widget from the layout.
 
-        @param dialog The Dialog which contains the layout
         @param item The Widget to be removed
         """
         item.delete()
         self.content.remove(item)
-        dialog.needs_layout = True
+        self.saved_dialog.set_needs_layout()
 
     def layout(self, x, y):
         """
@@ -177,16 +175,15 @@ class VerticalLayout(Widget):
                 item.layout(x, top - item.height)
                 top -= item.height + self.padding
 
-    def set(self, dialog, content):
+    def set(self, content):
         """
         Sets an entirely new set of Widgets, discarding the old.
 
-        @param dialog The Dialog which contains the layout
         @param content The new list of Widgets
         """
         self.delete()
         self.content = content
-        dialog.set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
         """
@@ -194,6 +191,7 @@ class VerticalLayout(Widget):
 
         @param dialog The Dialog which contains the layout
         """
+        Widget.size(self, dialog)
         if len(self.content) < 2:
             height = 0
         else:
@@ -205,6 +203,12 @@ class VerticalLayout(Widget):
             width = max(width, item.width)
         self.width, self.height = width, height
         self.expandable = [x for x in self.content if x.is_expandable()]
+
+    def teardown(self):
+        for item in self.content:
+            item.teardown()
+        self.content = []
+        Widget.teardown(self)
 
 class HorizontalLayout(VerticalLayout):
     """
@@ -272,6 +276,7 @@ class HorizontalLayout(VerticalLayout):
 
         @param dialog The Dialog which contains the layout
         """
+        Widget.size(self, dialog)
         height = 0
         if len(self.content) < 2:
             width = 0
@@ -362,11 +367,10 @@ class GridLayout(Widget):
                 col_index += 1
             row_index += 1
 
-    def set(self, dialog, column, row, item):
+    def set(self, column, row, item):
         """
         Sets the content of a cell within the grid.
 
-        @param dialog The Dialog which contains the layout
         @param column The column of the cell to be set
         @param row The row of the cell to be set
         @param item The new Widget to be set in that cell
@@ -379,7 +383,7 @@ class GridLayout(Widget):
         if self.content[row][column] is not None:
             self.content[row][column].delete()
         self.content[row][column] = item
-        dialog.set_needs_layout()
+        self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
         """Recalculates our size and the maximum widths and heights of
@@ -387,6 +391,7 @@ class GridLayout(Widget):
 
         @param dialog The Dialog within which we are contained
         """
+        Widget.size(self, dialog)
         self.max_heights = [0] * len(self.content)
         width = 0
         for row in self.content:
@@ -413,6 +418,13 @@ class GridLayout(Widget):
                    - self.padding
         self.height = reduce(lambda x, y: x + y, self.max_heights) \
                     - self.padding
+
+    def teardown(self):
+        for row in self.content:
+            for cell in row:
+                cell.teardown()
+        self.content = []
+        Widget.teardown(self)
 
 class FreeLayout(Spacer):
     """
@@ -447,7 +459,7 @@ class FreeLayout(Spacer):
             controls += item._get_controls()
         return controls
 
-    def add(self, dialog, anchor, x, y, widget):
+    def add(self, anchor, x, y, widget):
         """
         Adds a new Widget to the FreeLayout.
 
@@ -458,8 +470,8 @@ class FreeLayout(Spacer):
         @param y Y-coordinate of offset from anchor point; positive is upward
         @param widget The Widget to be added
         """
-        self.content.append( (dialog, anchor, x, y, widget) )
-        dialog.set_needs_layout()
+        self.content.append( (anchor, x, y, widget) )
+        self.saved_dialog.set_needs_layout()
 
     def layout(self, x, y):
         """
@@ -493,4 +505,10 @@ class FreeLayout(Spacer):
         Spacer.size(self, dialog)
         for anchor, offset_x, offset_y, widget in self.content:
             widget.size(dialog)
+
+    def teardown(self):
+        for _, _, _, item in self.content:
+            item.teardown()
+        self.content = []
+        Widget.teardown(self)
 

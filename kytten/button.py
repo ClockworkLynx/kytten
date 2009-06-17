@@ -55,32 +55,32 @@ class Button(Control):
         self.label.x = x + width/2 - self.label.content_width/2
         self.label.y = y + height/2 - font.ascent/2 - font.descent
 
-    def on_gain_highlight(self, dialog):
-        Control.on_gain_highlight(self, dialog)
-        self.size(dialog)
+    def on_gain_highlight(self):
+        Control.on_gain_highlight(self)
+        self.size(self.saved_dialog)
         self.highlight.update(self.x, self.y, self.width, self.height)
 
-    def on_lose_highlight(self, dialog):
-        Control.on_lose_highlight(self, dialog)
+    def on_lose_highlight(self):
+        Control.on_lose_highlight(self)
         if self.highlight is not None:
             self.highlight.delete()
             self.highlight = None
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         if not self.is_pressed:
             self.is_pressed = True
 
             # Delete the button to force it to be redrawn
             self.delete()
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
-    def on_mouse_release(self, dialog, x, y, button, modifiers):
+    def on_mouse_release(self, x, y, button, modifiers):
         if self.is_pressed:
             self.is_pressed = False
 
             # Delete the button to force it to be redrawn
             self.delete()
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
             # Now, if mouse is still inside us, signal on_click
             if self.on_click is not None and self.hit_test(x, y):
@@ -95,6 +95,7 @@ class Button(Control):
 
         @param dialog Dialog which contains the Button
         """
+        Control.size(self, dialog)
         if self.button is None:
             if self.is_pressed:
                 self.button = dialog.theme['button']['image-down'].generate(
@@ -126,3 +127,6 @@ class Button(Control):
         self.width, self.height = self.button.get_needed_size(
             self.label.content_width, height)
 
+    def teardown(self):
+        self.on_click = None
+        Control.teardown(self)

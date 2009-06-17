@@ -73,7 +73,7 @@ class Document(Control):
         if self.scrollbar is not None:
             self.scrollbar.layout(x + self.content_width, y)
 
-    def on_update(self, dialog, dt):
+    def on_update(self, dt):
         """
         On updates, we update the scrollbar and then set our view offset
         if it has changed.
@@ -81,7 +81,7 @@ class Document(Control):
         @param dt Time passed since last update event (in seconds)
         """
         if self.scrollbar is not None:
-            self.scrollbar.dispatch_event('on_update', dialog, dt)
+            self.scrollbar.dispatch_event('on_update', dt)
             pos = self.scrollbar.get(self.max_height,
                                      self.content.content_height)
             if pos != -self.content.view_y:
@@ -89,9 +89,10 @@ class Document(Control):
 
         if self.needs_layout:
             self.needs_layout = False
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
+        Control.size(self, dialog)
         if not self.set_document_style:
             self.do_set_document_style(dialog)
         if self.content is None:

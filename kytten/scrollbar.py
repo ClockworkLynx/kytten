@@ -142,11 +142,10 @@ class HScrollbar(Control):
         if self.bar is not None:
             self.bar.update(*self._get_bar_region())
 
-    def on_mouse_drag(self, dialog, x, y, dx, dy, buttons, modifiers):
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         """
         We drag the bar only if the user had previously clicked on the bar
 
-        @param dialog Dialog which contains the scrollbar
         @param x X coordinate of mouse
         @param y Y coordinate of mouse
         @param dx Delta X
@@ -157,15 +156,14 @@ class HScrollbar(Control):
         if self.is_dragging:
             self.drag_bar(dx, dy)
             self.delete()
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
             return pyglet.event.EVENT_HANDLED
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         """
         If the mouse press falls within the space, move the bar over to the
         mouse.  Otherwise, activate scrolling.
 
-        @param dialog Dialog which contains the scrollbar
         @param x X coordinate of mouse
         @param y Y coordinate of mouse
         @param button Button being pressed
@@ -177,7 +175,7 @@ class HScrollbar(Control):
             self.set_bar_pos(x, y)
             self.is_dragging = True
             self.delete()
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
         else:
             left_x, left_y, left_width, left_height = self._get_left_region()
             if x >= left_x and x < left_x + left_width and \
@@ -192,11 +190,10 @@ class HScrollbar(Control):
                     self.is_scrolling = True
                     self.scroll_delta = 1
 
-    def on_mouse_release(self, dialog, x, y, button, modifiers):
+    def on_mouse_release(self, x, y, button, modifiers):
         """
         Cancels dragging or scrolling
 
-        @param dialog Dialog which contains the scrollbar
         @param x X coordinate of mouse
         @param y Y coordinate of mouse
         @param button Button being released
@@ -206,16 +203,15 @@ class HScrollbar(Control):
         self.is_scrolling = False
         self.scroll_delta = 0
 
-    def on_update(self, dialog, dt):
+    def on_update(self, dt):
         """
         When scrolling, we increment our position each update
 
-        @param dialog Dialog in which we're contained
         @param dt Time delta, in seconds
         """
         if self.is_scrolling:
             self.drag_bar(self.scroll_delta * 50.0 * dt, 0)
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
     def set(self, width, max_width):
         """
@@ -251,6 +247,7 @@ class HScrollbar(Control):
         """
         Creates scrollbar components.
         """
+        Control.size(self, dialog)
         if self.left is None:
             if self.pos > 0.0:
                 component, image = self.IMAGE_LEFT
@@ -356,7 +353,7 @@ class VScrollbar(HScrollbar):
         self.pos = min(max(self.pos - float(dy) / space_height, 0.0),
                        1.0 - float(bar_height)/space_height)
 
-    def on_update(self, dialog, dt):
+    def on_update(self, dt):
         """
         When scrolling, we increment our position each update
 
@@ -365,7 +362,7 @@ class VScrollbar(HScrollbar):
         """
         if self.is_scrolling:
             self.drag_bar(0, -self.scroll_delta * 50.0 * dt)
-            dialog.set_needs_layout()
+            self.saved_dialog.set_needs_layout()
 
     def set(self, height, max_height):
         """Sets the new height of the scrollbar, and the height of

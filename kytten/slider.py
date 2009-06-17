@@ -101,18 +101,18 @@ class Slider(Control):
                                            self.markers[n].width,
                                            self.markers[n].height)
 
-    def on_mouse_drag(self, dialog, x, y, dx, dy, buttons, modifiers):
+    def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         if self.is_dragging and self.bar is not None:
             bar_x, bar_y, bar_width, bar_height = self.bar.get_content_region()
             self.set_pos(self.pos + float(dx) / bar_width)
 
-    def on_mouse_press(self, dialog, x, y, button, modifiers):
+    def on_mouse_press(self, x, y, button, modifiers):
         self.is_dragging = True
         if self.bar is not None:
             bar_x, bar_y, bar_width, bar_height = self.bar.get_content_region()
             self.set_pos(float(x - bar_x) / bar_width)
 
-    def on_mouse_release(self, dialog, x, y, button, modifiers):
+    def on_mouse_release(self, x, y, button, modifiers):
         self.is_dragging = False
         self.snap_to_nearest()
         if self.on_set is not None:
@@ -135,6 +135,7 @@ class Slider(Control):
         """
         Creates slider components.
         """
+        Control.size(self, dialog)
         if self.bar is None:
             component, image = self.IMAGE_BAR
             self.bar = dialog.theme[component][image].generate(
@@ -163,3 +164,7 @@ class Slider(Control):
         if self.steps is not None:
             n = int(self.pos * self.steps + 0.5)
             self.set_pos(float(n) / self.steps)
+
+    def teardown(self):
+        self.on_set = None
+        Control.teardown(self)
