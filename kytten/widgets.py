@@ -149,7 +149,8 @@ class Control(Widget, pyglet.event.EventDispatcher):
         self.is_focus = False
 
     def _get_controls(self):
-        return [self]
+        return [(self, self.x, self.x + self.width,    # control, left, right,
+                       self.y + self.height, self.y)]  # top, bottom
 
     def get_cursor(self, x, y):
         return self.cursor

@@ -17,8 +17,29 @@ class DialogEventManager(Control):
         """
         Control.__init__(self)
         self.controls = []
+        self.control_areas = {}
+        self.control_map = {}
         self.hover = None
         self.focus = None
+
+    def get_value(self, id):
+        widget = self.get_widget(id)
+        if widget is not None:
+            return widget.get_value()
+
+    def get_values(self):
+        retval = {}
+        for widget in self.controls:
+            if widget.is_input() and widget.id is not None:
+                retval[widget.id] = widget.get_value()
+        return retval
+
+    def get_widget(self, id):
+        return self.control_map.get(id)
+
+    def hit_control(self, x, y, control):
+        left, right, top, bottom = self.control_areas[control]
+        return x >= left and x < right and y >= bottom and y < top
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -30,7 +51,8 @@ class DialogEventManager(Control):
         @param modifiers Modifiers for key press
         """
         if symbol in [pyglet.window.key.TAB, pyglet.window.key.ENTER]:
-            focusable = [x for x in self.controls if x.is_focusable()]
+            focusable = [x for x in self.control_map.values()
+                         if x.is_focusable()]
             if not focusable:
                 return
 
@@ -94,11 +116,11 @@ class DialogEventManager(Control):
         @param dx Delta X
         @param dy Delta Y
         """
-        if self.hover is not None and self.hover.hit_test(x, y):
+        if self.hover is not None and self.hit_control(x, y, self.hover):
             self.hover.dispatch_event('on_mouse_motion', x, y, dx, dy)
         new_hover = None
         for control in self.controls:
-            if control.hit_test(x, y):
+            if self.hit_control(x, y, control):
                 new_hover = control
                 break
         self.set_hover(new_hover)
@@ -117,7 +139,7 @@ class DialogEventManager(Control):
         @param button Button pressed
         @param modifiers Modifiers to apply to button
         """
-        if self.focus is not None and self.focus.hit_test(x, y):
+        if self.focus is not None and self.hit_control(x, y, self.focus):
             self.focus.dispatch_event('on_mouse_press',
                                       x, y, button, modifiers)
             return pyglet.event.EVENT_HANDLED
@@ -203,6 +225,29 @@ class DialogEventManager(Control):
         self.hover = hover
         if hover is not None:
             hover.dispatch_event('on_gain_highlight')
+
+    def teardown(self):
+        self.controls = []
+        self.control_map = {}
+        self.focus = None
+        self.hover = None
+
+    def update_controls(self):
+        """Update our list of controls which may respond to user input."""
+        controls = self._get_controls()
+        self.controls = []
+        self.control_areas = {}
+        self.control_map = {}
+        for control, left, right, top, bottom in controls:
+            self.controls.append(control)
+            self.control_areas[control] = (left, right, top, bottom)
+            if control.id is not None:
+                self.control_map[control.id] = control
+
+        if self.hover is not None and self.hover not in self.controls:
+            self.set_hover(None)
+        if self.focus is not None and self.focus not in self.controls:
+            self.set_focus(None)
 
 kytten_next_dialog_order_id = 0
 def GetNextDialogOrderId():
@@ -324,9 +369,6 @@ class Dialog(Wrapper, DialogEventManager):
         self.fg_group = pyglet.graphics.OrderedGroup(2, self.root_group)
         self.highlight_group = pyglet.graphics.OrderedGroup(3, self.root_group)
         self.needs_layout = True
-        self.control_map = []
-        self.hover = None
-        self.focus = None
         self.is_dragging = False
 
         if window is None:
@@ -340,9 +382,6 @@ class Dialog(Wrapper, DialogEventManager):
         """
         We lay out the Dialog by first determining the size of all its
         chlid Widgets, then laying ourself out relative to the parent window.
-        As a side effect, we also update our list of controls which may
-        respond to user input, and the subset of those controls which need
-        to be updated regularly.
         """
         # Determine size of all components
         self.size(self)
@@ -363,33 +402,12 @@ class Dialog(Wrapper, DialogEventManager):
 
         # Perform the actual layout now!
         self.layout(x, y)
-        self.controls = self._get_controls()
-        self.control_map = dict([(x, x.id) for x in self.controls
-                                 if x.id is not None])
-        if self.hover is not None and self.hover not in self.controls:
-            self.set_hover(self, None)
-        if self.focus is not None and self.focus not in self.controls:
-            self.set_focus(self, None)
+        self.update_controls()
 
         self.needs_layout = False
 
     def get_root(self):
         return self
-
-    def get_value(self, id):
-        widget = self.get_widget(id)
-        if widget is not None:
-            return widget.get_value()
-
-    def get_values(self):
-        retval = {}
-        for widget in self.controls:
-            if widget.is_input() and widget.id is not None:
-                retval[widget.id] = widget.get_value()
-        return retval
-
-    def get_widget(self, id):
-        return self.control_map.get(id)
 
     def on_key_press(self, symbol, modifiers):
         """
@@ -513,8 +531,7 @@ class Dialog(Wrapper, DialogEventManager):
         self.needs_layout = True
 
     def teardown(self):
-        self.focus = None
-        self.hover = None
+        DialogEventManager.teardown(self)
         self.content.teardown()
         self.content = None
         if self.window is not None:

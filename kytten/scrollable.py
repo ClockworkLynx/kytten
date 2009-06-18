@@ -41,7 +41,7 @@ class ScrollableGroup(pyglet.graphics.Group):
         """
         gl.glPopAttrib()
 
-class Scrollable(Wrapper, DialogEventManager):
+class Scrollable(Wrapper):
     """
     Wraps a layout or widget and limits it to a maximum, or fixed, size.
     If the layout exceeds the viewable limits then it is truncated and
@@ -62,7 +62,6 @@ class Scrollable(Wrapper, DialogEventManager):
         if is_fixed_size:
             assert width is not None and height is not None
         Wrapper.__init__(self, content)
-        DialogEventManager.__init__(self)
         self.max_width = width
         self.max_height = height
         self.is_fixed_size = is_fixed_size
@@ -87,19 +86,32 @@ class Scrollable(Wrapper, DialogEventManager):
         self.fg_group = None
         self.highlight_group = None
         self.needs_layout = False
-        self.controls = []
 
     def _get_controls(self):
         """
         We represent ourself as a Control to the Dialog, but we pass through
         the events we receive from Dialog.
         """
+        base_controls = Wrapper._get_controls(self)
         controls = []
+        our_left = self.content_x
+        our_right = our_left + self.content_width
+        our_bottom = self.content_y
+        our_top = our_bottom + self.content_height
+        for control, left, right, top, bottom in base_controls:
+            if right < our_left or left > our_right or \
+               top < our_bottom or bottom > our_top:
+                continue  # this control is not visible
+            controls.append((control,
+                             max(left, our_left),
+                             min(right, our_right),
+                             min(top, our_top),
+                             max(bottom, our_bottom)))
         if self.hscrollbar is not None:
-            controls += [self.hscrollbar]
+            controls += self.hscrollbar._get_controls()
         if self.vscrollbar is not None:
-            controls += [self.vscrollbar]
-        return controls + [self]
+            controls += self.vscrollbar._get_controls()
+        return controls
 
     def delete(self):
         """
@@ -182,19 +194,6 @@ class Scrollable(Wrapper, DialogEventManager):
 
         self.needs_layout = False
 
-    def on_lose_focus(self):
-        """
-        If we're no longer focused by the Dialog, remove our own focus
-        """
-        self.set_focus(None)
-
-    def on_lose_highlight(self):
-        """
-        If we're no longer highlighted by the Dialog, remove our own
-        highlight
-        """
-        self.set_hover(None)
-
     def on_update(self, dt):
         """
         On updates, we redo the layout if scrollbars have changed position
@@ -202,10 +201,10 @@ class Scrollable(Wrapper, DialogEventManager):
         @param dt Time passed since last update event (in seconds)
         """
         if self.needs_layout:
+            width, height = self.width, self.height
             self.size(self.saved_dialog)
+            self.expand(width, height)
             self.layout(self.x, self.y)
-        for control in self.controls:
-            control.dispatch_event('on_update', dt)
 
     def set_needs_layout(self):
         self.needs_layout = True
@@ -280,14 +279,3 @@ class Scrollable(Wrapper, DialogEventManager):
             self.vscrollbar.set(self.max_height, max(self.content.height,
                                                      self.max_height))
             self.width += self.vscrollbar.width
-
-        self.controls = self.content._get_controls()
-        if self.hover is not None and self.hover not in self.controls:
-            self.set_hover(None)
-        if self.focus is not None and self.focus not in self.controls:
-            self.set_focus(None)
-
-    def teardown(self):
-        self.hover = None
-        self.focus = None
-        Wrapper.teardown(self)
