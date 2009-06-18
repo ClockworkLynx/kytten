@@ -92,6 +92,9 @@ class Document(Control):
             self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
+        if dialog is None:
+            return
+
         Control.size(self, dialog)
         if not self.set_document_style:
             self.do_set_document_style(dialog)

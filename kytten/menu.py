@@ -84,6 +84,8 @@ class MenuOption(Control):
         self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
+        if dialog is None:
+            return
         Control.size(self, dialog)
         if self.label is None:
             if self.is_selected:
@@ -293,6 +295,8 @@ class Dropdown(Control):
         self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
+        if dialog is None:
+            return
         Control.size(self, dialog)
 
         if self.field is None:

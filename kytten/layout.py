@@ -191,6 +191,8 @@ class VerticalLayout(Widget):
 
         @param dialog The Dialog which contains the layout
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if len(self.content) < 2:
             height = 0
@@ -276,6 +278,8 @@ class HorizontalLayout(VerticalLayout):
 
         @param dialog The Dialog which contains the layout
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         height = 0
         if len(self.content) < 2:
@@ -391,6 +395,8 @@ class GridLayout(Widget):
 
         @param dialog The Dialog within which we are contained
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         self.max_heights = [0] * len(self.content)
         width = 0
@@ -502,6 +508,8 @@ class FreeLayout(Spacer):
 
         @param dialog The Dialog which contains the FreeLayout
         """
+        if dialog is None:
+            return
         Spacer.size(self, dialog)
         for anchor, offset_x, offset_y, widget in self.content:
             widget.size(dialog)

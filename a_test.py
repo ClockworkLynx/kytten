@@ -26,8 +26,7 @@ theme2 = kytten.Theme(theme, override={
 
 # Callback functions for dialogs which may be of interest
 def on_escape(dialog):
-    window.remove_handlers(dialog)
-    dialog.delete()
+    dialog.teardown()
 
 def create_document_dialog():
     document = pyglet.text.decode_attributed('''
@@ -57,7 +56,6 @@ colorfully!
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape)
-    window.push_handlers(dialog)
 
 def create_form_dialog():
     dialog = None
@@ -96,7 +94,6 @@ def create_form_dialog():
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_enter=on_enter, on_escape=on_escape)
-    window.push_handlers(dialog)
 
 def create_scrollable_dialog():
     def on_select(choice):
@@ -126,7 +123,6 @@ def create_scrollable_dialog():
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape)
-    window.push_handlers(dialog)
 
 def create_folding_dialog():
     document1 = pyglet.text.decode_attributed("""
@@ -176,7 +172,6 @@ And wait for the Jellicle moon to rise
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape)
-    window.push_handlers(dialog)
 
 def create_dropdown_dialog():
     def on_select(choice):
@@ -197,7 +192,6 @@ def create_dropdown_dialog():
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape)
-    window.push_handlers(dialog)
 
 def create_file_load_dialog():
     dialog = None
@@ -211,7 +205,6 @@ def create_file_load_dialog():
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape, on_select=on_select)
-    window.push_handlers(dialog)
 
 def create_file_save_dialog():
     dialog = None
@@ -225,7 +218,6 @@ def create_file_save_dialog():
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape, on_select=on_select)
-    window.push_handlers(dialog)
 
 def on_select(choice):
     if choice == 'Document':
@@ -283,7 +275,6 @@ if __name__ == '__main__':
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_TOP_LEFT,
 	theme=theme)
-    window.push_handlers(dialog)
 
     # Change this flag to run with profiling and dump top 20 cumulative times
     if True:

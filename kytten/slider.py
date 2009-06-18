@@ -135,6 +135,8 @@ class Slider(Control):
         """
         Creates slider components.
         """
+        if dialog is None:
+            return
         Control.size(self, dialog)
         if self.bar is None:
             component, image = self.IMAGE_BAR

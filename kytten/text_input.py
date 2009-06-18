@@ -120,6 +120,8 @@ class Input(Control):
             self.highlight.update(self.x, self.y, self.width, self.height)
 
     def size(self, dialog):
+        if dialog is None:
+            return
         Control.size(self, dialog)
         self.document.set_style(0, len(self.document.text),
                     dict(color=dialog.theme['text_color'],

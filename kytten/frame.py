@@ -85,6 +85,8 @@ class Wrapper(Widget):
 
         @param dialog The Dialog which contains the Wrapper
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if self.content is not None:
             self.content.size(dialog)
@@ -156,6 +158,8 @@ class Frame(Wrapper):
 
         @param dialog Dialog which contains the Frame
         """
+        if dialog is None:
+            return
         Wrapper.size(self, dialog)
         if self.frame is None:
             if self.use_bg_group:

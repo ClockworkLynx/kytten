@@ -247,6 +247,8 @@ class HScrollbar(Control):
         """
         Creates scrollbar components.
         """
+        if dialog is None:
+            return
         Control.size(self, dialog)
         if self.left is None:
             if self.pos > 0.0:

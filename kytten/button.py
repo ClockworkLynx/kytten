@@ -58,7 +58,8 @@ class Button(Control):
     def on_gain_highlight(self):
         Control.on_gain_highlight(self)
         self.size(self.saved_dialog)
-        self.highlight.update(self.x, self.y, self.width, self.height)
+        if self.highlight is not None:
+            self.highlight.update(self.x, self.y, self.width, self.height)
 
     def on_lose_highlight(self):
         Control.on_lose_highlight(self)
@@ -95,6 +96,8 @@ class Button(Control):
 
         @param dialog Dialog which contains the Button
         """
+        if dialog is None:
+            return
         Control.size(self, dialog)
         if self.button is None:
             if self.is_pressed:

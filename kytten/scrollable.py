@@ -218,6 +218,8 @@ class Scrollable(Wrapper, DialogEventManager):
 
         @param dialog Dialog which contains us
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if self.is_fixed_size:
             self.width, self.height = self.max_width, self.max_height

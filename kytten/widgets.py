@@ -109,7 +109,7 @@ class Widget:
 
         @param dialog The Dialog which contains this Widget
         """
-        if dialog != self:
+        if dialog != self and dialog is not None:
             self.saved_dialog = dialog
 
     def teardown(self):
@@ -238,6 +238,8 @@ class Test(Widget):
 
         @param dialog The Dialog within which we are contained
         """
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if self.vertex_list is None:
             self.vertex_list = dialog.batch.add_indexed(4, gl.GL_LINES,
@@ -279,6 +281,8 @@ class Spacer(Widget):
         """Spacer shrinks down to the minimum size for placement.
 
         @param dialog Dialog which contains us"""
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         self.width, self.height = self.min_width, self.min_height
 
@@ -312,6 +316,8 @@ class Graphic(Widget):
         self.graphic.update(x, y, self.width, self.height)
 
     def size(self, dialog):
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if self.graphic is None:
             template = dialog.theme[self.component][self.image_name]
@@ -349,6 +355,8 @@ class Label(Widget):
         self.label.y = y - font.descent
 
     def size(self, dialog):
+        if dialog is None:
+            return
         Widget.size(self, dialog)
         if self.label is None:
             self.label = pyglet.text.Label(

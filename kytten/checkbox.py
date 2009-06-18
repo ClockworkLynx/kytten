@@ -109,6 +109,8 @@ class Checkbox(Control):
 
         @param dialog Dialog which contains the Checkbox
         """
+        if dialog is None:
+            return
         Control.size(self, dialog)
         if self.checkbox is None:
             if self.is_checked:

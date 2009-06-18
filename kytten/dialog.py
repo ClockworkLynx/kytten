@@ -280,7 +280,8 @@ class Dialog(Wrapper, DialogEventManager):
 
         @param content The Widget which we wrap
         @param window The window to which we belong; used to set the
-                      mouse cursor when appropriate
+                      mouse cursor when appropriate.  If set, we will
+                      add ourself to the window as a handler.
         @param batch Batch in which we are to place our graphic elements;
                      may be None if we are to create our own Batch
         @param group Group in which we are to place our graphic elements;
@@ -333,6 +334,7 @@ class Dialog(Wrapper, DialogEventManager):
         else:
             width, height = window.get_size()
             self.screen = Widget(width=width, height=height)
+            window.push_handlers(self)
 
     def do_layout(self):
         """
@@ -499,7 +501,7 @@ class Dialog(Wrapper, DialogEventManager):
         event handler stack.
         """
         self.root_group.pop_to_top()
-        self.batch._draw_list_dirty = True # forces resorting groups
+        self.batch._draw_list_dirty = True  # forces resorting groups
         if self.window is not None:
             self.window.remove_handlers(self)
             self.window.push_handlers(self)
@@ -514,3 +516,8 @@ class Dialog(Wrapper, DialogEventManager):
         self.focus = None
         self.hover = None
         self.content.teardown()
+        self.content = None
+        if self.window is not None:
+            self.window.remove_handlers(self)
+            self.window = None
+        self.batch._draw_list_dirty = True  # forces resorting groups
