@@ -54,6 +54,10 @@ class Widget:
         """
         pass
 
+    def ensure_visible(self):
+        if self.saved_dialog is not None:
+            self.saved_dialog.ensure_visible(self)
+
     def expand(self, width, height):
         """
         Expands the widget to fill the specified space given.

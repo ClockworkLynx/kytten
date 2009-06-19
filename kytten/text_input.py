@@ -14,6 +14,7 @@ class Input(Control):
         self.padding = padding
         self.on_input = on_input
         self.document = pyglet.text.document.UnformattedDocument(text)
+        self.document_style_set = False
         self.text_layout = None
         self.caret = None
         self.field = None
@@ -72,9 +73,9 @@ class Input(Control):
     def on_lose_focus(self):
         Control.on_lose_focus(self)
         self.remove_highlight()
-        if self.caret is not None:
-            self.caret.visible = False
-            self.caret.mark = self.caret.position = 0
+        self.caret.visible = False
+        self.caret.mark = 0
+        self.caret.position = 0
         if self.on_input is not None:
             if self.id is not None:
                 self.on_input(self.id, self.get_text())
@@ -123,10 +124,15 @@ class Input(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
-        self.document.set_style(0, len(self.document.text),
-                    dict(color=dialog.theme['text_color'],
-                         font_name=dialog.theme['font'],
-                         font_size=dialog.theme['font_size']))
+
+        # We set the style once.  We shouldn't have to do so again because
+        # it's an UnformattedDocument.
+        if not self.document_style_set:
+            self.document.set_style(0, len(self.document.text),
+                                    dict(color=dialog.theme['text_color'],
+                                         font_name=dialog.theme['font'],
+                                         font_size=dialog.theme['font_size']))
+            self.document_style_set = True
 
         # Calculate the needed size based on the font size
         font = self.document.get_font(0)

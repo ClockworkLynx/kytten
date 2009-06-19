@@ -71,25 +71,39 @@ def create_form_dialog():
 	on_escape(dialog)
     dialog = kytten.Dialog(
 	kytten.Frame(
-	    kytten.VerticalLayout([
-		kytten.SectionHeader("Personnel Data",
-				     align=kytten.HALIGN_LEFT),
-		kytten.GridLayout([
-		    [kytten.Label("Name"), kytten.Input("name", "Lynx")],
-		    [kytten.Label("Job"), kytten.Input("job", "Cat")],
-		    [kytten.Label("Hobby"), kytten.Input("hobby",
-							 "Programming")],
-		]),
-		kytten.Checkbox("Full-Time", id="fulltime"),
-		kytten.Checkbox("Married", id="married"),
-		kytten.SectionHeader("Actions",
-				     align=kytten.HALIGN_LEFT),
-		kytten.HorizontalLayout([
-		    kytten.Button("Submit", on_click=on_submit),
-		    None,
-		    kytten.Button("Cancel", on_click=on_cancel),
-		]),
-	    ], align=kytten.HALIGN_LEFT),
+	    kytten.Scrollable(
+		kytten.VerticalLayout([
+		    kytten.SectionHeader("Personnel Data",
+					 align=kytten.HALIGN_LEFT),
+		    kytten.Document("Try tabbing through fields, "
+				    "if offscreen they'll be moved "
+				    "automatically",
+				    width=350),
+		    kytten.GridLayout([
+			[kytten.Label("Name"), kytten.Input("name", "Lynx")],
+			[kytten.Label("Job"), kytten.Input("job", "Cat")],
+			[kytten.Label("Hobby"),
+			     kytten.Input("hobby", "Programming")],
+			[kytten.Label("Class"),
+			     kytten.Input("class", "Druid")],
+			[kytten.Label("Sign"),
+			     kytten.Input("sign", "Free to good home")],
+			[kytten.Label("Blood Type"),
+			     kytten.Input("bloodtype", "Red")],
+			[kytten.Label("Favored Weapon"),
+			     kytten.Input("weapon", "Claws")],
+		    ]),
+		    kytten.Checkbox("Full-Time", id="fulltime"),
+		    kytten.Checkbox("Married", id="married"),
+		    kytten.SectionHeader("Actions",
+					 align=kytten.HALIGN_LEFT),
+		    kytten.HorizontalLayout([
+			kytten.Button("Submit", on_click=on_submit),
+			None,
+			kytten.Button("Cancel", on_click=on_cancel),
+		    ]),
+		], align=kytten.HALIGN_LEFT),
+		height=200, width=360)
 	),
 	window=window, batch=batch, group=fg_group,
 	anchor=kytten.ANCHOR_CENTER,

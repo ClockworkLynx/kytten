@@ -118,6 +118,27 @@ class HScrollbar(Control):
         self.pos = min(max(self.pos + float(dx) / space_width, 0.0),
                        1.0 - float(bar_width)/space_width)
 
+    def ensure_visible(self, left, right, max_width):
+        """
+        Ensure that the area of space between left and right is completely
+        visible.
+
+        @param left Left end of the space
+        @param right Right end of the space
+        @param max_width Maximum width of space
+        """
+        pos_x = self.pos * max_width
+        pos_width = self.bar_width * max_width
+        if pos_x <= left and pos_x + pos_width > right:
+            return  # We're fine
+        elif pos_x > left:
+            self.pos = pos_x / max_width  # Shift to the left
+        elif pos_x + pos_width < right:
+            self.pos = (right - pos_width) / max_width  # Shift to the right
+        self.pos = min(max(self.pos, 0.0), 1.0 - self.bar_width)
+        self.delete()
+        self.saved_dialog.set_needs_layout()
+
     def get(self, width, max_width):
         """
         Returns the position of the bar, in pixels from the controlled area's
@@ -141,6 +162,14 @@ class HScrollbar(Control):
             self.space.update(*self._get_space_region())
         if self.bar is not None:
             self.bar.update(*self._get_bar_region())
+
+    def on_gain_focus(self):
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_wheel_target(self)
+
+    def on_lose_focus(self):
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_wheel_target(None)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         """
@@ -203,6 +232,19 @@ class HScrollbar(Control):
         self.is_scrolling = False
         self.scroll_delta = 0
 
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        """
+        Mousewheel was moved some number of clicks
+
+        @param x X coordinate of mouse
+        @param y Y coordinate of mouse
+        @param scroll_x Number of clicks horizontally mouse was moved
+        @param scroll_y Number of clicks vertically mouse was moved
+        """
+        self.drag_bar(scroll_y * 10, 0)
+        self.delete()
+        self.saved_dialog.set_needs_layout()
+
     def on_update(self, dt):
         """
         When scrolling, we increment our position each update
@@ -250,6 +292,7 @@ class HScrollbar(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
+        dialog.set_wheel_hint(self)
         if self.left is None:
             if self.pos > 0.0:
                 component, image = self.IMAGE_LEFT
@@ -354,6 +397,42 @@ class VScrollbar(HScrollbar):
         _, _, bar_width, bar_height = self._get_bar_region()
         self.pos = min(max(self.pos - float(dy) / space_height, 0.0),
                        1.0 - float(bar_height)/space_height)
+
+    def ensure_visible(self, top, bottom, max_height):
+        """
+        Ensure that the area of space between top and bottom is completely
+        visible.
+
+        @param top Top end of the space
+        @param bottom Bottom end of the space
+        @param max_height Maximum height of space
+        """
+        bar_top = (1.0 - self.pos) * max_height
+        bar_bottom = bar_top - self.bar_width * max_height
+        if bar_top > top and bar_bottom <= bottom:
+            return  # We're fine
+        elif bar_top < top:
+            # Shift upward
+            self.pos = 1.0 - float(top) / max_height
+        elif bar_bottom > bottom:
+            # Shift downward
+            self.pos = 1.0 - float(bottom) / max_height - self.bar_width
+        self.pos = min(max(self.pos, 0.0), 1.0 - self.bar_width)
+        self.delete()
+        self.saved_dialog.set_needs_layout()
+
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        """
+        Mousewheel was moved some number of clicks
+
+        @param x X coordinate of mouse
+        @param y Y coordinate of mouse
+        @param scroll_x Number of clicks horizontally mouse was moved
+        @param scroll_y Number of clicks vertically mouse was moved
+        """
+        self.drag_bar(0, scroll_y * 10)
+        self.delete()
+        self.saved_dialog.set_needs_layout()
 
     def on_update(self, dt):
         """

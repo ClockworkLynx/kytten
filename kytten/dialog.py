@@ -21,6 +21,8 @@ class DialogEventManager(Control):
         self.control_map = {}
         self.hover = None
         self.focus = None
+        self.wheel_hint = None
+        self.wheel_target = None
 
     def get_value(self, id):
         widget = self.get_widget(id)
@@ -51,8 +53,7 @@ class DialogEventManager(Control):
         @param modifiers Modifiers for key press
         """
         if symbol in [pyglet.window.key.TAB, pyglet.window.key.ENTER]:
-            focusable = [x for x in self.control_map.values()
-                         if x.is_focusable()]
+            focusable = [x for x in self.controls if x.is_focusable()]
             if not focusable:
                 return
 
@@ -68,6 +69,7 @@ class DialogEventManager(Control):
 
             new_focus = focusable[(index + dir) % len(focusable)]
             self.set_focus(new_focus)
+            new_focus.ensure_visible()
 
             # If we hit ENTER, and wrapped back to the first focusable,
             # pass the ENTER back so the Dialog can call its on_enter callback
@@ -168,10 +170,31 @@ class DialogEventManager(Control):
         self.is_dragging = False
         if self.focus is not None:
             self.focus.dispatch_event('on_mouse_release',
-                                             x, y, button, modifiers)
+                                      x, y, button, modifiers)
             retval = pyglet.event.EVENT_HANDLED
         DialogEventManager.on_mouse_motion(self, x, y, 0, 0)
         return retval
+
+    def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
+        """
+        Mousewheel was scrolled.  See if we have a wheel target, or
+        failing that, a wheel hint.
+
+        @param x X coordinate of mouse
+        @param y Y coordinate of mouse
+        @param scroll_x Number of clicks horizontally mouse was moved
+        @param scroll_y Number of clicks vertically mouse was moved
+        """
+        if self.wheel_target is not None and \
+           self.wheel_target in self.controls:
+            self.wheel_target.dispatch_event('on_mouse_scroll',
+                                             x, y, scroll_x, scroll_y)
+            return pyglet.event.EVENT_HANDLED
+        elif self.wheel_hint is not None and \
+             self.wheel_hint in self.controls:
+            self.wheel_hint.dispatch_event('on_mouse_scroll',
+                                           x, y, scroll_x, scroll_y)
+            return pyglet.event.EVENT_HANDLED
 
     def on_text(self, text):
         if self.focus and text != u'\r':
@@ -226,11 +249,19 @@ class DialogEventManager(Control):
         if hover is not None:
             hover.dispatch_event('on_gain_highlight')
 
+    def set_wheel_hint(self, control):
+        self.wheel_hint = control
+
+    def set_wheel_target(self, control):
+        self.wheel_target = control
+
     def teardown(self):
         self.controls = []
         self.control_map = {}
         self.focus = None
         self.hover = None
+        self.wheel_hint = None
+        self.wheel_target = None
 
     def update_controls(self):
         """Update our list of controls which may respond to user input."""
@@ -405,6 +436,13 @@ class Dialog(Wrapper, DialogEventManager):
         self.update_controls()
 
         self.needs_layout = False
+
+    def ensure_visible(self, control):
+        """
+        Ensure a control is visible.  For Dialog, this doesn't matter
+        since we don't scroll.
+        """
+        pass
 
     def get_root(self):
         return self

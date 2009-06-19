@@ -99,9 +99,6 @@ class Scrollable(Wrapper):
         our_bottom = self.content_y
         our_top = our_bottom + self.content_height
         for control, left, right, top, bottom in base_controls:
-            if right < our_left or left > our_right or \
-               top < our_bottom or bottom > our_top:
-                continue  # this control is not visible
             controls.append((control,
                              max(left, our_left),
                              min(right, our_right),
@@ -125,6 +122,32 @@ class Scrollable(Wrapper):
             self.vscrollbar.delete()
             self.vscrollbar = None
         self.root_group = None
+
+    def ensure_visible(self, control):
+        """
+        Make sure a control is visible.
+        """
+        offset_x = 0
+        if self.hscrollbar:
+            offset_x = self.hscrollbar.get(self.content_width,
+                                           self.content.width)
+        offset_y = 0
+        if self.vscrollbar:
+            offset_y = self.content.height - self.content_height - \
+                     self.vscrollbar.get(self.content_height,
+                                         self.content.height)
+        control_left = control.x - self.content_x - offset_x
+        control_right = control_left + control.width
+        control_bottom = control.y - self.content_y + offset_y
+        control_top = control_bottom + control.height
+        if self.hscrollbar is not None:
+            self.hscrollbar.ensure_visible(control_left, control_right,
+                                           max(self.content_width,
+                                               self.content.width))
+        if self.vscrollbar is not None:
+            self.vscrollbar.ensure_visible(control_top, control_bottom,
+                                           max(self.content_height,
+                                               self.content.height))
 
     def expand(self, width, height):
         if self.content.is_expandable():
@@ -210,6 +233,14 @@ class Scrollable(Wrapper):
         self.needs_layout = True
         if self.saved_dialog is not None:
             self.saved_dialog.set_needs_layout()
+
+    def set_wheel_hint(self, control):
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_wheel_hint(control)
+
+    def set_wheel_target(self, control):
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_wheel_target(control)
 
     def size(self, dialog):
         """
