@@ -233,8 +233,8 @@ class Theme(ScopedDict):
 	if isinstance(arg, dict):
 	    input = arg
 	else:
-	    loader = pyglet.resource.Loader(path=arg)
-	    theme_file = loader.file('theme.json')
+	    self.loader = pyglet.resource.Loader(path=arg)
+	    theme_file = self.loader.file('theme.json')
 	    input = json_load(theme_file.read())
 	    theme_file.close()
 
@@ -281,7 +281,7 @@ class Theme(ScopedDict):
 	@param filename The filename of the texture
 	"""
 	if not self.textures.has_key(filename):
-	    self.textures[filename] = pyglet.resource.image(filename)
+	    self.textures[filename] = self.loader.texture(filename)
 	return self.textures[filename]
 
     def _get_texture_region(self, filename, x, y, width, height):
