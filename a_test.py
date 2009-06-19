@@ -13,7 +13,7 @@ import kytten
 from background import Background
 
 # Default theme, gold-colored
-theme = kytten.Theme(os.getcwd(), override={
+theme = kytten.Theme(os.path.join(os.getcwd(), 'theme.zip'), override={
     "gui_color": [64, 128, 255, 255],
     "font_size": 14
 })
