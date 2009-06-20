@@ -166,14 +166,12 @@ class DialogEventManager(Control):
         @param button Button released
         @param modifiers Modifiers to apply to button
         """
-        retval = pyglet.event.EVENT_UNHANDLED
         self.is_dragging = False
         if self.focus is not None:
             self.focus.dispatch_event('on_mouse_release',
                                       x, y, button, modifiers)
-            retval = pyglet.event.EVENT_HANDLED
         DialogEventManager.on_mouse_motion(self, x, y, 0, 0)
-        return retval
+        return pyglet.event.EVENT_HANDLED
 
     def on_mouse_scroll(self, x, y, scroll_x, scroll_y):
         """
@@ -510,6 +508,7 @@ class Dialog(Wrapper, DialogEventManager):
                 self.pop_to_top()
             if not retval:
                 self.is_dragging = True
+                retval = pyglet.event.EVENT_HANDLED
         return retval
 
     def on_mouse_release(self, x, y, button, modifiers):
