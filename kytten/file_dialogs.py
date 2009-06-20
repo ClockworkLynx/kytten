@@ -107,11 +107,9 @@ class FileLoadDialog(Dialog):
         self.files = self.files_dict.keys()
 
         def dir_sort(x, y):
-            if x == '(parent dir)':
-                return -1
-            elif x.endswith(' (dir)') and y.endswith(' (dir)'):
+            if x.endswith(' (dir)') and y.endswith(' (dir)'):
                 return cmp(x, y)
-            elif x.endswith(' (dir)') and y != '(parent dir)':
+            elif x.endswith(' (dir)'):
                 return -1
             elif y.endswith(' (dir)'):
                 return 1
@@ -148,8 +146,8 @@ class FileSaveDialog(FileLoadDialog):
         def on_enter(dialog):
             self._do_select()
         self.on_enter = on_enter
-        self.real_on_select = self.on_select
 
+        self.real_on_select = self.on_select
         def on_select(filename):
             self.text_input.set_text(filename)
         self.on_select = on_select
@@ -187,3 +185,124 @@ class FileSaveDialog(FileLoadDialog):
             ], align=HALIGN_LEFT)
         )
 
+class DirectorySelectDialog(FileLoadDialog):
+    def __init__(self, *args, **kwargs):
+        self.text_input = Input()
+
+        # Set up buttons to be shown in our contents
+        def on_select_button():
+            self._do_select()
+        self.select_button = Button("Select", on_click=on_select_button)
+
+        def on_cancel_button():
+            self._do_cancel()
+        self.cancel_button = Button("Cancel", on_click=on_cancel_button)
+
+        FileLoadDialog.__init__(self, *args, **kwargs)
+
+        # Setup our event handlers
+        def on_enter(dialog):
+            self._do_select()
+        self.on_enter = on_enter
+
+        self.real_on_select = self.on_select
+        def on_select(filename):
+            self.text_input.set_text(filename)
+        self.on_select = on_select
+
+        def on_parent_menu_select(choice):
+            self.text_input.set_text(self.parents_dict[choice])
+            self._do_open()
+        self.dropdown.on_select = on_parent_menu_select
+
+    def _do_cancel(self):
+        if self.on_escape is not None:
+            self.on_escape(self)
+        else:
+            self.delete()
+            self.window.remove_handlers(self)
+
+    def _do_open(self):
+        filename = self.text_input.get_text()
+        if os.path.isdir(filename):
+            self.path = filename
+            self._set_files()
+            self.dropdown.set_options(self.parents,
+                                      selected=self.parents[-1])
+            self.menu.set_options(self.files)
+
+    def _do_select(self):
+        filename = self.text_input.get_text()
+        path, base = os.path.split(filename)
+        if not base:
+            filename = None
+        elif not path:
+            filename = os.path.join(self.path, filename)
+        if self.real_on_select is not None:
+            if self.id is not None:
+                self.real_on_select(self.id, filename)
+            else:
+                self.real_on_select(filename)
+
+    def _get_content(self):
+        return Frame(
+            VerticalLayout([
+                SectionHeader(self.title),
+                self.scrollable,
+                Label("Directory:"),
+                self.text_input,
+                HorizontalLayout([
+                    self.select_button, None, self.cancel_button
+                ]),
+            ], align=HALIGN_LEFT)
+        )
+
+    def _select_file(self, filename):
+        if self.selected_file == filename:
+            if filename != self.path:
+                self._do_open()
+            else:
+                self._do_select()
+        else:
+            self.selected_file = filename
+            if self.on_select is not None:
+                self.on_select(filename)
+
+    def _set_files(self):
+        # Once we have a new path, update our files
+        filenames = glob.glob(os.path.join(self.path, '*'))
+
+        # First, a list of directories
+        self.parents = []
+        self.parents_dict = {}
+        path = self.path
+        index = 1
+        while 1:
+            name = "%d %s" % (index, os.path.basename(path) or path)
+            self.parents_dict[name] = path
+            self.parents.append(name)
+            index += 1
+            path, child = os.path.split(path)
+            if not child:
+                break
+        self.parents.reverse()
+
+        files = [('(this dir)', self.path)] + \
+                [("%s (dir)" % os.path.basename(x), x) for x in filenames
+                 if os.path.isdir(x)]
+        self.selected_file = None
+        self.files_dict = dict(files)
+        self.files = self.files_dict.keys()
+
+        def dir_sort(x, y):
+            if x == '(this dir)':
+                return -1
+            elif x.endswith(' (dir)') and y.endswith(' (dir)'):
+                return cmp(x, y)
+            elif x.endswith(' (dir)') and y != '(this dir)':
+                return -1
+            elif y.endswith(' (dir)'):
+                return 1
+            else:
+                return cmp(x, y)
+        self.files.sort(dir_sort)

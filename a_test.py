@@ -233,6 +233,18 @@ def create_file_save_dialog():
 	anchor=kytten.ANCHOR_CENTER,
 	theme=theme2, on_escape=on_escape, on_select=on_select)
 
+def create_directory_select_dialog():
+    dialog = None
+
+    def on_select(filename):
+	print "Directory: %s" % filename
+	on_escape(dialog)
+
+    dialog = kytten.DirectorySelectDialog(
+	window=window, batch=batch, group=fg_group,
+	anchor=kytten.ANCHOR_CENTER,
+	theme=theme2, on_escape=on_escape, on_select=on_select)
+
 def on_select(choice):
     if choice == 'Document':
 	create_document_dialog()
@@ -248,6 +260,8 @@ def on_select(choice):
 	create_file_load_dialog()
     elif choice == 'File Save':
 	create_file_save_dialog()
+    elif choice == 'Directory Select':
+	create_directory_select_dialog()
     else:
 	print "Unexpected menu selection: %s" % choice
 
@@ -282,7 +296,8 @@ if __name__ == '__main__':
 		kytten.Label("Select dialog to show"),
 		kytten.Menu(options=["Document", "Form", "Scrollable",
 				     "Folding", "Dropdown",
-				     "File Load", "File Save"],
+				     "File Load", "File Save",
+				     "Directory Select"],
 			    on_select=on_select),
 	    ]),
 	),

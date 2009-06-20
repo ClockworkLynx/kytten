@@ -78,9 +78,8 @@ class DialogEventManager(Control):
                 return pyglet.event.EVENT_HANDLED
 
         elif symbol != pyglet.window.key.ESCAPE:
-            if self.focus is not None:
-                self.focus.dispatch_event('on_key_press', symbol, modifiers)
-                return pyglet.event.EVENT_HANDLED
+            if self.focus is not None and hasattr(self.focus, 'on_key_press'):
+                return self.focus.on_key_press(symbol, modifiers)
 
     def on_key_release(self, symbol, modifiers):
         """Pass key release events to the focus
@@ -88,9 +87,8 @@ class DialogEventManager(Control):
         @param symbol Key released
         @param modifiers Modifiers for key released
         """
-        if self.focus is not None:
-            self.focus.dispatch_event('on_key_release', symbol, modifiers)
-            return pyglet.event.EVENT_HANDLED
+        if self.focus is not None and hasattr(self.focus, 'on_key_release'):
+            return self.focus.on_key_release(symbol, modifiers)
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
         """

@@ -242,6 +242,11 @@ class FoldingSection(Control, VerticalLayout):
 
         VerticalLayout.__init__(self, content=layout, align=HALIGN_LEFT)
 
+    def _get_controls(self):
+        return VerticalLayout._get_controls(self) + \
+               [(self, self.header.x, self.header.x + self.header.width,
+                       self.header.y + self.header.height, self.header.y)]
+
     def _get_image_name(self):
         if self.is_open:
             return "image-opened"

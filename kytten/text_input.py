@@ -70,6 +70,9 @@ class Input(Control):
             self.caret.mark = 0
             self.caret.position = len(self.document.text)
 
+    def on_key_press(self, symbol, modifiers):
+        return pyglet.event.EVENT_HANDLED
+
     def on_lose_focus(self):
         Control.on_lose_focus(self)
         self.remove_highlight()
