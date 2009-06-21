@@ -19,7 +19,7 @@ class Document(Control):
         Control.__init__(self, width, height)
         self.max_height = height
         self.content_width = width
-        if isinstance(document, str):
+        if isinstance(document, basestring):
             self.document = pyglet.text.document.UnformattedDocument(document)
         else:
             self.document = document

@@ -433,6 +433,10 @@ class Dialog(Wrapper, DialogEventManager):
 
         self.needs_layout = False
 
+    def draw(self):
+        assert self.own_batch
+        self.batch.draw()
+
     def ensure_visible(self, control):
         """
         Ensure a control is visible.  For Dialog, this doesn't matter

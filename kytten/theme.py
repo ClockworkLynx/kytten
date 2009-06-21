@@ -83,8 +83,8 @@ class TextureGraphicElement:
 				     ('t3f', texture.tex_coords))
 
     def _get_vertices(self):
-	x1, y1 = self.x, self.y
-	x2, y2 = x1 + self.width, y1 + self.height
+	x1, y1 = int(self.x), int(self.y)
+	x2, y2 = x1 + int(self.width), y1 + int(self.height)
 	return (x1, y1, x2, y1, x2, y2, x1, y2)
 
     def delete(self):
@@ -129,10 +129,11 @@ class FrameTextureGraphicElement:
 
     def _get_vertices(self):
         left, right, top, bottom = self.margins
-        x1, y1 = self.x, self.y
-        x2, y2 = x1 + left, y1 + bottom
-        x3, y3 = x1 + self.width - right, y1 + self.height - top
-        x4, y4 = x1 + self.width, y1 + self.height
+        x1, y1 = int(self.x), int(self.y)
+        x2, y2 = x1 + int(left), y1 + int(bottom)
+        x3 = x1 + int(self.width) - int(right)
+	y3 = y1 + int(self.height) - int(top)
+        x4, y4 = x1 + int(self.width), y1 + int(self.height)
         return (x1, y1, x2, y1, x2, y2, x1, y2,  # bottom left
                 x2, y1, x3, y1, x3, y2, x2, y2,  # bottom
                 x3, y1, x4, y1, x4, y2, x3, y2,  # bottom right

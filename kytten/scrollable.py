@@ -25,6 +25,7 @@ class ScrollableGroup(pyglet.graphics.Group):
         """
         pyglet.graphics.Group.__init__(self, parent)
         self.x, self.y, self.width, self.height = x, y, width, height
+        self.was_scissor_enabled = False
 
     def set_state(self):
         """
@@ -32,6 +33,7 @@ class ScrollableGroup(pyglet.graphics.Group):
         """
         gl.glPushAttrib(gl.GL_ENABLE_BIT | gl.GL_TRANSFORM_BIT |
                         gl.GL_CURRENT_BIT)
+        self.was_scissor_enabled = gl.glIsEnabled(gl.GL_SCISSOR_TEST)
         gl.glEnable(gl.GL_SCISSOR_TEST)
         gl.glScissor(self.x, self.y, self.width, self.height)
 
@@ -39,6 +41,8 @@ class ScrollableGroup(pyglet.graphics.Group):
         """
         Disables the scissor test
         """
+        if not self.was_scissor_enabled:
+            gl.glDisable(gl.GL_SCISSOR_TEST)
         gl.glPopAttrib()
 
 class Scrollable(Wrapper):
