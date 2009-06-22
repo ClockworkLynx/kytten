@@ -7,8 +7,8 @@ from widgets import Control
 class Input(Control):
     """A text input field."""
     def __init__(self, id=None, text="", length=20, padding=0,
-                 on_input=None):
-        Control.__init__(self, id=id)
+                 on_input=None, disabled=False):
+        Control.__init__(self, id=id, disabled=disabled)
         self.text = text
         self.length = length
         self.padding = padding
@@ -34,6 +34,14 @@ class Input(Control):
         if self.highlight is not None:
             self.highlight.delete()
             self.highlight = None
+
+    def disable(self):
+        Control.disable(self)
+        self.document_style_set = False
+
+    def ensable(self):
+        Control.disable(self)
+        self.document_style_set = False
 
     def get_text(self):
         return self.document.text
@@ -65,7 +73,7 @@ class Input(Control):
     def on_gain_focus(self):
         Control.on_gain_focus(self)
         self.set_highlight()
-        if self.caret is not None:
+        if self.caret is not None and not self.is_disabled():
             self.caret.visible = True
             self.caret.mark = 0
             self.caret.position = len(self.document.text)
@@ -90,26 +98,31 @@ class Input(Control):
         self.remove_highlight()
 
     def on_mouse_drag(self, x, y, dx, dy, buttons, modifiers):
-        return self.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
+        if not self.is_disabled():
+            return self.caret.on_mouse_drag(x, y, dx, dy, buttons, modifiers)
 
     def on_mouse_press(self, x, y, button, modifiers):
-        return self.caret.on_mouse_press(x, y, button, modifiers)
+        if not self.is_disabled():
+            return self.caret.on_mouse_press(x, y, button, modifiers)
 
     def on_text(self, text):
-        self.caret.on_text(text)
+        if not self.is_disabled():
+            self.caret.on_text(text)
 
     def on_text_motion(self, motion):
-        return self.caret.on_text_motion(motion)
+        if not self.is_disabled():
+            return self.caret.on_text_motion(motion)
 
     def on_text_motion_select(self, motion):
-        return self.caret.on_text_motion_select(motion)
+        if not self.is_disabled():
+            return self.caret.on_text_motion_select(motion)
 
     def set_text(self, text):
         self.document.text = text
         self.caret.mark = self.caret.position = len(self.document.text)
 
     def remove_highlight(self):
-        if not self.is_highlight and not self.is_focus:
+        if not self.is_highlight() and not self.is_focus():
             if self.highlight is not None:
                 self.highlight.delete()
                 self.highlight = None
@@ -131,8 +144,12 @@ class Input(Control):
         # We set the style once.  We shouldn't have to do so again because
         # it's an UnformattedDocument.
         if not self.document_style_set:
+            if self.is_disabled():
+                color = dialog.theme['disabled_color']
+            else:
+                color = dialog.theme['text_color']
             self.document.set_style(0, len(self.document.text),
-                                    dict(color=dialog.theme['text_color'],
+                                    dict(color=color,
                                          font_name=dialog.theme['font'],
                                          font_size=dialog.theme['font_size']))
             self.document_style_set = True
@@ -155,11 +172,15 @@ class Input(Control):
                 self.text_layout, color=dialog.theme['gui_color'][0:3])
             self.caret.visible = False
         if self.field is None:
+            if self.is_disabled():
+                color = dialog.theme['disabled_color']
+            else:
+                color = dialog.theme['gui_color']
             self.field = dialog.theme['input']['image'].generate(
-                color=dialog.theme['gui_color'],
+                color=color,
                 batch=dialog.batch,
                 group=dialog.bg_group)
-        if self.highlight is None and self.is_highlight:
+        if self.highlight is None and self.is_highlight():
             self.set_highlight()
 
         self.width, self.height = self.field.get_needed_size(

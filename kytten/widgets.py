@@ -131,7 +131,7 @@ class Control(Widget, pyglet.event.EventDispatcher):
     then dispatch events to whichever control is currently the focus of
     the user's attention.
     """
-    def __init__(self, id=None, value=None, width=0, height=0):
+    def __init__(self, id=None, value=None, width=0, height=0, disabled=False):
         """
         Creates a new Control.
 
@@ -144,38 +144,55 @@ class Control(Widget, pyglet.event.EventDispatcher):
         @param y Initial Y coordinate of lower left corner
         @param width Initial width
         @param height Initial height
+        @param disabled True if control should be disabled
         """
         Widget.__init__(self, width, height)
         self.id = id
         self.value = value
+        self.disabled_flag = disabled
         pyglet.event.EventDispatcher.__init__(self)
-        self.is_highlight = False
-        self.is_focus = False
+        self.highlight_flag = False
+        self.focus_flag = False
 
     def _get_controls(self):
         return [(self, self.x, self.x + self.width,    # control, left, right,
                        self.y + self.height, self.y)]  # top, bottom
 
+    def disable(self):
+        self.disabled_flag = True
+        self.delete()
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
+
+    def enable(self):
+        self.disabled_flag = False
+        self.delete()
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
+
     def get_cursor(self, x, y):
         return self.cursor
 
+    def is_disabled(self):
+        return self.disabled_flag
+
     def is_focus(self):
-        return self.is_focus
+        return self.focus_flag
 
     def is_highlight(self):
-        return self.is_highlight
+        return self.highlight_flag
 
     def on_gain_focus(self):
-        self.is_focus = True
+        self.focus_flag = True
 
     def on_gain_highlight(self):
-        self.is_highlight = True
+        self.highlight_flag = True
 
     def on_lose_focus(self):
-        self.is_focus = False
+        self.focus_flag = False
 
     def on_lose_highlight(self):
-        self.is_highlight = False
+        self.highlight_flag = False
 
 # Controls can potentially accept most of the events defined for the window,
 # but in practice we'll only pass selected events from Dialog.  This avoids

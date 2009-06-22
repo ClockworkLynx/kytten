@@ -8,15 +8,16 @@ class Button(Control):
     """
     A simple text-labeled button.
     """
-    def __init__(self, text="", id=None, on_click=None):
+    def __init__(self, text="", id=None, on_click=None, disabled=False):
         """
         Creates a new Button.  The provided text will be used to caption the
         button.
 
         @param text Label for the button
         @param on_click Callback for the button
+        @param disabled True if the button should be disabled
         """
-        Control.__init__(self, id=id)
+        Control.__init__(self, id=id, disabled=disabled)
         self.text = text
         self.on_click = on_click
         self.label = None
@@ -68,7 +69,7 @@ class Button(Control):
             self.highlight = None
 
     def on_mouse_press(self, x, y, button, modifiers):
-        if not self.is_pressed:
+        if not self.is_pressed and not self.is_disabled():
             self.is_pressed = True
 
             # Delete the button to force it to be redrawn
@@ -99,16 +100,20 @@ class Button(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
+        if self.is_disabled():
+            color = dialog.theme['button']['disabled_color']
+        else:
+            color = dialog.theme['button']['gui_color']
         if self.button is None:
             if self.is_pressed:
                 self.button = dialog.theme['button']['image-down'].generate(
-                    dialog.theme['button']['gui_color'],
+                    color,
                     dialog.batch, dialog.bg_group)
             else:
                 self.button = dialog.theme['button']['image'].generate(
-                    dialog.theme['button']['gui_color'],
+                    color,
                     dialog.batch, dialog.bg_group)
-        if self.highlight is None and self.is_highlight:
+        if self.highlight is None and self.is_highlight():
             self.highlight = dialog.theme['button']['image-highlight'].\
                 generate(dialog.theme['button']['highlight_color'],
                          dialog.batch,
@@ -121,7 +126,7 @@ class Button(Control):
             self.label = pyglet.text.Label(self.text,
                 font_name=dialog.theme['button'][button_type]['font'],
                 font_size=dialog.theme['button'][button_type]['font_size'],
-                color=dialog.theme['button'][button_type]['gui_color'],
+                color=color,
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent

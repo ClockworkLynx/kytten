@@ -258,6 +258,9 @@ class DirectorySelectDialog(FileLoadDialog):
         )
 
     def _select_file(self, filename):
+        if not os.path.isdir(filename):
+            return  # we accept only directories!
+
         if self.selected_file == filename:
             if filename != self.path:
                 self._do_open()
@@ -290,6 +293,18 @@ class DirectorySelectDialog(FileLoadDialog):
         files = [('(this dir)', self.path)] + \
                 [("%s (dir)" % os.path.basename(x), x) for x in filenames
                  if os.path.isdir(x)]
+        # Now add the files that match the extensions
+        if self.extensions:
+            for filename in filenames:
+                if os.path.isfile(filename):
+                    ext = os.path.splitext(filename)[1]
+                    if ext in self.extensions:
+                        files.append(('-%s' % os.path.basename(filename),
+                                      filename))
+        else:
+            files.extend([('-%s' % os.path.basename(x), x) for x in filenames
+                          if os.path.isfile(x)])
+
         self.selected_file = None
         self.files_dict = dict(files)
         self.files = self.files_dict.keys()

@@ -35,7 +35,8 @@ class ScrollableGroup(pyglet.graphics.Group):
                         gl.GL_CURRENT_BIT)
         self.was_scissor_enabled = gl.glIsEnabled(gl.GL_SCISSOR_TEST)
         gl.glEnable(gl.GL_SCISSOR_TEST)
-        gl.glScissor(self.x, self.y, self.width, self.height)
+        gl.glScissor(int(self.x), int(self.y),
+                     int(self.width), int(self.height))
 
     def unset_state(self):
         """

@@ -53,7 +53,8 @@ class DialogEventManager(Control):
         @param modifiers Modifiers for key press
         """
         if symbol in [pyglet.window.key.TAB, pyglet.window.key.ENTER]:
-            focusable = [x for x in self.controls if x.is_focusable()]
+            focusable = [x for x in self.controls
+                         if x.is_focusable() and not x.is_disabled()]
             if not focusable:
                 return
 
@@ -487,7 +488,7 @@ class Dialog(Wrapper, DialogEventManager):
                                                 buttons, modifiers):
             if self.is_movable and self.is_dragging:
                 x, y = self.offset
-                self.offset = (x + dx, y + dy)
+                self.offset = (int(x + dx), int(y + dy))
                 self.set_needs_layout()
                 return pyglet.event.EVENT_HANDLED
 

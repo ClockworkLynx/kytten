@@ -13,7 +13,7 @@ import kytten
 from background import Background
 
 # Default theme, gold-colored
-theme = kytten.Theme(os.path.join(os.getcwd(), 'theme.zip'), override={
+theme = kytten.Theme(os.path.join(os.getcwd(), 'theme'), override={
     "gui_color": [64, 128, 255, 255],
     "font_size": 14
 })
@@ -86,6 +86,9 @@ def create_form_dialog():
 			     kytten.Input("hobby", "Programming")],
 			[kytten.Label("Class"),
 			     kytten.Input("class", "Druid")],
+			[kytten.Label("Disabled"),
+			     kytten.Input("disabled", "Disabled input",
+					  disabled=True)],
 			[kytten.Label("Sign"),
 			     kytten.Input("sign", "Free to good home")],
 			[kytten.Label("Blood Type"),
@@ -94,11 +97,12 @@ def create_form_dialog():
 			     kytten.Input("weapon", "Claws")],
 		    ]),
 		    kytten.Checkbox("Full-Time", id="fulltime"),
-		    kytten.Checkbox("Married", id="married"),
+		    kytten.Checkbox("Married", id="married", disabled=True),
 		    kytten.SectionHeader("Actions",
 					 align=kytten.HALIGN_LEFT),
 		    kytten.HorizontalLayout([
 			kytten.Button("Submit", on_click=on_submit),
+			kytten.Button("Disabled", disabled=True),
 			None,
 			kytten.Button("Cancel", on_click=on_cancel),
 		    ]),
@@ -121,10 +125,14 @@ def create_scrollable_dialog():
 	    kytten.Scrollable(
 		kytten.VerticalLayout([
 		    kytten.Label("Rate Kytten from 1 to 10:"),
-		    kytten.Slider(1.0, 10.0, steps=9, on_set=on_set),
+		    kytten.Slider(7.0, 1.0, 10.0, steps=9, on_set=on_set),
+		    kytten.Label("This slider is disabled:"),
+		    kytten.Slider(1.0, 1.0, 10.0, steps=9, on_set=on_set,
+				  disabled=True),
 		    kytten.Label("Kytten is..."),
 		    kytten.Menu(options=["Awesome",
 					 "Cute",
+					 "-Disabled Option",
 					 "Excellent",
 					 "Fantastic",
 					 "Great",
@@ -200,7 +208,9 @@ def create_dropdown_dialog():
 				 'Lambda', 'Mu', 'Nu', 'Xi', 'Omicron',
 				 'Pi', 'Rho', 'Sigma', 'Tau', 'Upsilon',
 				 'Phi', 'Chi', 'Psi', 'Omega'],
-				on_select=on_select)
+				on_select=on_select),
+		kytten.Label("This dropdown is disabled"),
+		kytten.Dropdown(['Disabled', 'Enabled'], disabled=True),
 	    ]),
 	),
 	window=window, batch=batch, group=fg_group,

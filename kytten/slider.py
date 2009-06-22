@@ -12,8 +12,8 @@ class Slider(Control):
     IMAGE_KNOB = ('slider', 'image-knob')
     IMAGE_STEP = ('slider', 'image-step')
 
-    def __init__(self, min_value=0.0, max_value=1.0, steps=None,
-                 width=100, id=None, on_set=None):
+    def __init__(self, value=0.0, min_value=0.0, max_value=1.0, steps=None,
+                 width=100, id=None, on_set=None, disabled=False):
         """
         Creates a new slider.
 
@@ -29,8 +29,9 @@ class Slider(Control):
         @param id ID for identifying this slider.
         @param on_set Callback function for when the value of this slider
                       changes.
+        @param diasbled True if the slider should be disabled
         """
-        Control.__init__(self, id=id)
+        Control.__init__(self, id=id, disabled=disabled)
         self.min_value = min_value
         self.max_value = max_value
         self.steps = steps
@@ -39,7 +40,9 @@ class Slider(Control):
         self.bar = None
         self.knob = None
         self.markers = []
-        self.pos = 0.0
+        self.pos = max(
+            min(float(value - min_value) / (max_value - min_value), 1.0),
+            0.0)
         self.offset = (0, 0)
         self.step_offset = (0, 0)
         self.padding = (0, 0, 0, 0)
@@ -107,12 +110,18 @@ class Slider(Control):
             self.set_pos(self.pos + float(dx) / bar_width)
 
     def on_mouse_press(self, x, y, button, modifiers):
+        if self.is_disabled():
+            return
+
         self.is_dragging = True
         if self.bar is not None:
             bar_x, bar_y, bar_width, bar_height = self.bar.get_content_region()
             self.set_pos(float(x - bar_x) / bar_width)
 
     def on_mouse_release(self, x, y, button, modifiers):
+        if self.is_disabled():
+            return
+
         self.is_dragging = False
         self.snap_to_nearest()
         if self.on_set is not None:
@@ -138,23 +147,27 @@ class Slider(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
+        if self.is_disabled():
+            color = dialog.theme['slider']['disabled_color']
+        else:
+            color = dialog.theme['slider']['gui_color']
         if self.bar is None:
             component, image = self.IMAGE_BAR
             self.bar = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+                color,
                 dialog.batch, dialog.bg_group)
             self.padding = dialog.theme[component]['padding']
         if self.knob is None:
             component, image = self.IMAGE_KNOB
             self.knob = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+                color,
                 dialog.batch, dialog.fg_group)
             self.offset = dialog.theme[component]['offset']
         if not self.markers and self.steps is not None:
             component, image = self.IMAGE_STEP
             for n in xrange(0, self.steps + 1):
                 self.markers.append(dialog.theme[component][image].generate(
-                    dialog.theme[component]['gui_color'],
+                    color,
                     dialog.batch, dialog.bg_group))
             self.step_offset = dialog.theme[component]['step-offset']
         width, height = self.bar.get_needed_size(self.min_width, 0)

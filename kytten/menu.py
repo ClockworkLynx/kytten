@@ -18,8 +18,9 @@ class MenuOption(Control):
     (inverted color against text-color background) to indicate that it
     has been chosen.
     """
-    def __init__(self, text="", anchor=ANCHOR_CENTER, menu=None):
-        Control.__init__(self)
+    def __init__(self, text="", anchor=ANCHOR_CENTER, menu=None,
+                 disabled=False):
+        Control.__init__(self, disabled=disabled)
         self.text = text
         self.anchor = anchor
         self.menu = menu
@@ -77,6 +78,9 @@ class MenuOption(Control):
         self.menu.select(self.text)
 
     def select(self):
+        if self.is_disabled():
+            return  # disabled options can't be selected
+
         self.is_selected = True
         if self.label is not None:
             self.label.delete()
@@ -98,8 +102,12 @@ class MenuOption(Control):
                     batch=dialog.batch,
                     group=dialog.fg_group)
             else:
+                if self.is_disabled():
+                    color = dialog.theme['menuoption']['disabled_color']
+                else:
+                    color = dialog.theme['menuoption']['text_color']
                 self.label = pyglet.text.Label(self.text,
-                    color=dialog.theme['menuoption']['text_color'],
+                    color=color,
                     font_name=dialog.theme['font'],
                     font_size=dialog.theme['font_size'],
                     batch=dialog.batch,
@@ -118,7 +126,7 @@ class MenuOption(Control):
                                  dialog.batch,
                                  dialog.bg_group)
         if self.highlight is None:
-            if self.is_highlight:
+            if self.is_highlight():
                 self.highlight = \
                     dialog.theme['menuoption']['image-highlight'].\
                         generate(dialog.theme['menuoption']['highlight_color'],
@@ -147,14 +155,27 @@ class Menu(VerticalLayout):
     """
     def __init__(self, options=[], align=HALIGN_CENTER, padding=4,
                  on_select=None):
-        menu_options = [MenuOption(option,
-                                   anchor=(VALIGN_CENTER, align),
-                                   menu=self) for option in options]
+        self.align = align
+        menu_options = self._make_options(options)
         self.options = dict(zip(options, menu_options))
         self.on_select = on_select
         self.selected = None
         VerticalLayout.__init__(self, menu_options,
                                 align=align, padding=padding)
+
+    def _make_options(self, options):
+        menu_options = []
+        for option in options:
+            if option.startswith('-'):
+                disabled = True
+                option = option[1:]
+            else:
+                disabled = False
+            menu_options.append(MenuOption(option,
+                                           anchor=(VALIGN_CENTER, self.align),
+                                           menu=self,
+                                           disabled=disabled))
+        return menu_options
 
     def get_value(self):
         return self.selected
@@ -163,7 +184,9 @@ class Menu(VerticalLayout):
         return True
 
     def select(self, text):
-        assert text in self.options
+        if not text in self.options:
+            return
+
         if self.selected is not None:
             self.options[self.selected].unselect()
         self.selected = text
@@ -176,9 +199,7 @@ class Menu(VerticalLayout):
     def set_options(self, options):
         self.delete()
         self.selected = None
-        menu_options = [MenuOption(option,
-                                   anchor=(VALIGN_CENTER, self.align),
-                                   menu=self) for option in options]
+        menu_options = self._make_options(options)
         self.options = dict(zip(options, menu_options))
         self.set(menu_options)
         self.saved_dialog.set_needs_layout()
@@ -189,9 +210,10 @@ class Menu(VerticalLayout):
 
 class Dropdown(Control):
     def __init__(self, options=[], selected=None, id=None,
-                 max_height=400, align=VALIGN_TOP, on_select=None):
+                 max_height=400, align=VALIGN_TOP, on_select=None,
+                 disabled=False):
         assert options
-        Control.__init__(self, id=id)
+        Control.__init__(self, id=id, disabled=disabled)
         self.options = options
         self.selected = selected or options[0]
         assert self.selected in self.options
@@ -225,6 +247,9 @@ class Dropdown(Control):
         return True
 
     def on_mouse_release(self, x, y, button, modifiers):
+        if self.is_disabled():
+            return
+
         if self.pulldown_menu is not None:
             self._delete_pulldown_menu()  # if it's already up, close it
             return
@@ -299,9 +324,14 @@ class Dropdown(Control):
             return
         Control.size(self, dialog)
 
+        if self.is_disabled():
+            color = dialog.theme['dropdown']['disabled_color']
+        else:
+            color = dialog.theme['dropdown']['gui_color']
+
         if self.field is None:
             self.field = dialog.theme['dropdown']['image'].generate(
-                dialog.theme['dropdown']['gui_color'],
+                color,
                 dialog.batch, dialog.bg_group)
         if self.label is None:
             self.label = pyglet.text.Label(self.selected,

@@ -10,7 +10,8 @@ class Checkbox(Control):
     A two-state checkbox.
     """
     def __init__(self, text="", is_checked=False, id=None,
-                 align=HALIGN_RIGHT, padding=4, on_click=None):
+                 align=HALIGN_RIGHT, padding=4, on_click=None,
+                 disabled=False):
         """
         Creates a new checkbox.  The provided text will be used to caption the
         checkbox.
@@ -22,9 +23,10 @@ class Checkbox(Control):
                      HALIGN_LEFT if label should be left of checkbox
         @param padding Space between checkbox and label
         @param on_click Callback for the checkbox
+        @param disabled True if the checkbox should be disabled
         """
         assert align in [HALIGN_LEFT, HALIGN_RIGHT]
-        Control.__init__(self, id=id)
+        Control.__init__(self, id=id, disabled=disabled)
         self.text = text
         self.is_checked = is_checked
         self.align = align
@@ -92,16 +94,17 @@ class Checkbox(Control):
             self.highlight = None
 
     def on_mouse_press(self, x, y, button, modifiers):
-        self.is_checked = not self.is_checked
-        if self.on_click is not None:
-            if self.id is not None:
-                self.on_click(self.id, self.is_checked)
-            else:
-                self.on_click(self.is_checked)
+        if not self.is_disabled():
+            self.is_checked = not self.is_checked
+            if self.on_click is not None:
+                if self.id is not None:
+                    self.on_click(self.id, self.is_checked)
+                else:
+                    self.on_click(self.is_checked)
 
-        # Delete the button to force it to be redrawn
-        self.delete()
-        self.saved_dialog.set_needs_layout()
+            # Delete the button to force it to be redrawn
+            self.delete()
+            self.saved_dialog.set_needs_layout()
 
     def size(self, dialog):
         """
@@ -112,16 +115,20 @@ class Checkbox(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
+        if self.is_disabled():
+            color = dialog.theme['checkbox']['disabled_color']
+        else:
+            color = dialog.theme['checkbox']['gui_color']
         if self.checkbox is None:
             if self.is_checked:
                 self.checkbox = dialog.theme['checkbox']['image-checked']\
-                    .generate(dialog.theme['checkbox']['gui_color'],
+                    .generate(color,
                               dialog.batch, dialog.bg_group)
             else:
                 self.checkbox = dialog.theme['checkbox']['image'].generate(
-                    dialog.theme['checkbox']['gui_color'],
+                    color,
                     dialog.batch, dialog.bg_group)
-        if self.highlight is None and self.is_highlight:
+        if self.highlight is None and self.is_highlight():
             self.highlight = dialog.theme['checkbox']['image-highlight']\
                 .generate(dialog.theme['checkbox']['highlight_color'],
                          dialog.batch,
@@ -130,7 +137,7 @@ class Checkbox(Control):
             self.label = pyglet.text.Label(self.text,
                 font_name=dialog.theme['checkbox']['font'],
                 font_size=dialog.theme['checkbox']['font_size'],
-                color=dialog.theme['checkbox']['gui_color'],
+                color=color,
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent
