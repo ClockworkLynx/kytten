@@ -4,9 +4,11 @@
 import pyglet
 from pyglet import gl
 
-from widgets import Widget, Control
-from frame import Wrapper
+from widgets import Widget, Control, Label
+from button import Button
+from frame import Wrapper, Frame
 from layout import GetRelativePoint, ANCHOR_CENTER
+from layout import VerticalLayout, HorizontalLayout
 
 class DialogEventManager(Control):
     def __init__(self):
@@ -572,9 +574,58 @@ class Dialog(Wrapper, DialogEventManager):
 
     def teardown(self):
         DialogEventManager.teardown(self)
-        self.content.teardown()
-        self.content = None
+        if self.content is not None:
+            self.content.teardown()
+            self.content = None
         if self.window is not None:
             self.window.remove_handlers(self)
             self.window = None
         self.batch._draw_list_dirty = True  # forces resorting groups
+
+class PopupMessage(Dialog):
+    """A simple fire-and-forget dialog."""
+
+    def __init__(self, text="", window=None, batch=None, group=None,
+                 theme=None, on_escape=None):
+        def on_ok(dialog=None):
+            if on_escape is not None:
+                on_escape(self)
+            self.teardown()
+
+        return Dialog.__init__(self, content=Frame(
+            VerticalLayout([
+                Label(text),
+                Button("Ok", on_click=on_ok),
+            ])),
+            window=window, batch=batch, group=group,
+            theme=theme, movable=True,
+            on_enter=on_ok, on_escape=on_ok)
+
+class PopupConfirm(Dialog):
+    """An ok/cancel-style dialog.  Escape defaults to cancel."""
+
+    def __init__(self, text="", ok="Ok", cancel="Cancel",
+                 window=None, batch=None, group=None, theme=None,
+                 on_ok=None, on_cancel=None):
+        def on_ok_click(dialog=None):
+            if on_ok is not None:
+                on_ok(self)
+            self.teardown()
+
+        def on_cancel_click(dialog=None):
+            if on_cancel is not None:
+                on_cancel(self)
+            self.teardown()
+
+        return Dialog.__init__(self, content=Frame(
+            VerticalLayout([
+                Label(text),
+                HorizontalLayout([
+                    Button(ok, on_click=on_ok_click),
+                    None,
+                    Button(cancel, on_click=on_cancel_click)
+                ]),
+            ])),
+            window=window, batch=batch, group=group,
+            theme=theme, movable=True,
+            on_enter=on_ok_click, on_escape=on_cancel_click)

@@ -9,12 +9,12 @@ class HScrollbar(Control):
     A horizontal scrollbar.  Position is measured from 0.0 to 1.0, and bar
     size is set as a percentage of the maximum.
     """
-    IMAGE_LEFT = ('hscrollbar', 'image-left')
-    IMAGE_SPACE = ('hscrollbar', 'image-space')
-    IMAGE_BAR = ('hscrollbar', 'image-bar')
-    IMAGE_RIGHT = ('hscrollbar', 'image-right')
-    IMAGE_LEFTMAX = ('hscrollbar', 'image-leftmax')
-    IMAGE_RIGHTMAX = ('hscrollbar', 'image-rightmax')
+    IMAGE_LEFT = ['hscrollbar', 'left']
+    IMAGE_SPACE = ['hscrollbar', 'space']
+    IMAGE_BAR = ['hscrollbar', 'bar']
+    IMAGE_RIGHT = ['hscrollbar', 'right']
+    IMAGE_LEFTMAX = ['hscrollbar', 'leftmax']
+    IMAGE_RIGHTMAX = ['hscrollbar', 'rightmax']
 
     def __init__(self, width):
         """
@@ -295,32 +295,32 @@ class HScrollbar(Control):
         dialog.set_wheel_hint(self)
         if self.left is None:
             if self.pos > 0.0:
-                component, image = self.IMAGE_LEFT
+                path = self.IMAGE_LEFT
             else:
-                component, image = self.IMAGE_LEFTMAX
-            self.left = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+                path = self.IMAGE_LEFTMAX
+            self.left = dialog.theme[path]['image'].generate(
+                dialog.theme[path]['gui_color'],
                 dialog.batch, dialog.fg_group)
 
             # Left button is our basis for minimum dimension
             self.width, self.height = self.left.width, self.left.height
         if self.space is None:
-            component, image = self.IMAGE_SPACE
-            self.space = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+            path = self.IMAGE_SPACE
+            self.space = dialog.theme[path]['image'].generate(
+                dialog.theme[path]['gui_color'],
                 dialog.batch, dialog.fg_group)
         if self.bar is None:
-            component, image = self.IMAGE_BAR
-            self.bar = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+            path = self.IMAGE_BAR
+            self.bar = dialog.theme[path]['image'].generate(
+                dialog.theme[path]['gui_color'],
                 dialog.batch, dialog.fg_group)
         if self.right is None:
             if self.pos < 1.0 - self.bar_width:
-                component, image = self.IMAGE_RIGHT
+                path = self.IMAGE_RIGHT
             else:
-                component, image = self.IMAGE_RIGHTMAX
-            self.right = dialog.theme[component][image].generate(
-                dialog.theme[component]['gui_color'],
+                path = self.IMAGE_RIGHTMAX
+            self.right = dialog.theme[path]['image'].generate(
+                dialog.theme[path]['gui_color'],
                 dialog.batch, dialog.fg_group)
 
 class VScrollbar(HScrollbar):
@@ -329,12 +329,12 @@ class VScrollbar(HScrollbar):
     is set as a percentage of the maximum.  Note that left is top, and
     right is bottom, from the viewpoint of the VScrollbar.
     """
-    IMAGE_LEFT = ('vscrollbar', 'image-up')
-    IMAGE_SPACE = ('vscrollbar', 'image-space')
-    IMAGE_BAR = ('vscrollbar', 'image-bar')
-    IMAGE_RIGHT = ('vscrollbar', 'image-down')
-    IMAGE_LEFTMAX = ('vscrollbar', 'image-upmax')
-    IMAGE_RIGHTMAX = ('vscrollbar', 'image-downmax')
+    IMAGE_LEFT = ['vscrollbar', 'up']
+    IMAGE_SPACE = ['vscrollbar', 'space']
+    IMAGE_BAR = ['vscrollbar', 'bar']
+    IMAGE_RIGHT = ['vscrollbar', 'down']
+    IMAGE_LEFTMAX = ['vscrollbar', 'upmax']
+    IMAGE_RIGHTMAX = ['vscrollbar', 'downmax']
 
     def __init__(self, height):
         """

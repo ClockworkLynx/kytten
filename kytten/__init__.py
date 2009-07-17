@@ -32,6 +32,7 @@
 """kytten - a skinnable, easily constructed GUI toolkit for pyglet
 
 Inspired by simplui (Tristam MacDonald) and many other GUI projects.
+Thanks to Gary Herron and Steve Johnson for debugging assistance!
 """
 
 # GUI public constants
@@ -46,7 +47,7 @@ from layout import ANCHOR_TOP_LEFT, ANCHOR_TOP, ANCHOR_TOP_RIGHT, \
 
 from button import Button
 from checkbox import Checkbox
-from dialog import Dialog
+from dialog import Dialog, PopupMessage, PopupConfirm
 from document import Document
 from file_dialogs import FileLoadDialog, FileSaveDialog, DirectorySelectDialog
 from frame import Frame, TitleFrame, Wrapper, SectionHeader, FoldingSection

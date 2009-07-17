@@ -103,7 +103,7 @@ class Frame(Wrapper):
     """
     Frame draws an untitled frame which encloses the dialog's content.
     """
-    def __init__(self, content=None, component="frame", image_name="image",
+    def __init__(self, content=None, path=['frame'], image_name='image',
                  is_expandable=False, anchor=ANCHOR_CENTER,
                  use_bg_group=False):
         """
@@ -112,7 +112,7 @@ class Frame(Wrapper):
         Wrapper.__init__(self, content,
                          is_expandable=is_expandable, anchor=anchor)
         self.frame = None
-        self.component = component
+        self.path = path
         self.image_name = image_name
         self.use_bg_group = use_bg_group
 
@@ -166,10 +166,11 @@ class Frame(Wrapper):
                 group = dialog.bg_group
             else:
                 group = dialog.panel_group
-            template = dialog.theme[self.component][self.image_name]
-            self.frame = template.generate(dialog.theme['gui_color'],
-                                           dialog.batch,
-                                           group)
+            template = dialog.theme[self.path][self.image_name]
+            self.frame = template.generate(
+                dialog.theme[self.path]['gui_color'],
+                dialog.batch,
+                group)
         self.width, self.height = self.frame.get_needed_size(
             self.content.width, self.content.height)
 
@@ -177,13 +178,12 @@ class TitleFrame(VerticalLayout):
     def __init__(self, title, content):
         VerticalLayout.__init__(self, content=[
                 HorizontalLayout([
-                    Graphic("titlebar", "image-left", is_expandable=True),
-                    Frame(Label(title, component="titlebar"),
-                          component="titlebar", image_name="image-center"),
-                    Graphic("titlebar", "image-right", is_expandable=True),
+                    Graphic(path=["titlebar", "left"], is_expandable=True),
+                    Frame(Label(title, path=["titlebar"]),
+                          path=["titlebar", "center"]),
+                    Graphic(path=["titlebar", "right"], is_expandable=True),
                 ], align=VALIGN_BOTTOM, padding=0),
-                Frame(content, "titlebar", "image-frame",
-                      is_expandable=True),
+                Frame(content, path=["titlebar", "frame"], is_expandable=True),
             ], padding=0)
 
 class SectionHeader(HorizontalLayout):
@@ -199,11 +199,11 @@ class SectionHeader(HorizontalLayout):
             right_expand = False
 
         HorizontalLayout.__init__(self, content=[
-                Graphic("section", "image-left", is_expandable=left_expand),
-                Frame(Label(title, component="section"),
-                      component="section", image_name="image-center",
+                Graphic(path=["section", "left"], is_expandable=left_expand),
+                Frame(Label(title, path=["section"]),
+                      path=['section', 'center'],
                       use_bg_group=True),
-                Graphic("section", "image-right", is_expandable=right_expand),
+                Graphic(path=["section", "right"], is_expandable=right_expand),
             ], align=VALIGN_BOTTOM, padding=0)
 
 class FoldingSection(Control, VerticalLayout):
@@ -221,37 +221,33 @@ class FoldingSection(Control, VerticalLayout):
 
         self.is_open = is_open
         self.folding_content = content
-        self.book = Graphic("section", self._get_image_name())
-        if self.is_open:
-            self.book = Graphic("section", "image-opened")
-        else:
-            self.book = Graphic("section", "image-closed")
+        self.book = Graphic(self._get_image_path())
 
         self.header = HorizontalLayout([
-            Graphic("section", "image-left", is_expandable=left_expand),
+            Graphic(path=["section", "left"], is_expandable=left_expand),
             Frame(HorizontalLayout([
                       self.book,
-                      Label(title, component="section"),
-                  ]), component="section", image_name="image-center",
+                      Label(title, path=["section"]),
+                  ]), path=["section", "center"],
                   use_bg_group=True),
-            Graphic("section", "image-right", is_expandable=right_expand),
+            Graphic(path=["section", "right"], is_expandable=right_expand),
             ], align=VALIGN_BOTTOM, padding=0)
         layout = [self.header]
         if self.is_open:
             layout.append(content)
 
-        VerticalLayout.__init__(self, content=layout, align=HALIGN_LEFT)
+        VerticalLayout.__init__(self, content=layout, align=align)
 
     def _get_controls(self):
         return VerticalLayout._get_controls(self) + \
                [(self, self.header.x, self.header.x + self.header.width,
                        self.header.y + self.header.height, self.header.y)]
 
-    def _get_image_name(self):
+    def _get_image_path(self):
         if self.is_open:
-            return "image-opened"
+            return ["section", "opened"]
         else:
-            return "image-closed"
+            return ["section", "closed"]
 
     def hit_test(self, x, y):
         return self.header.hit_test(x, y)
@@ -259,7 +255,7 @@ class FoldingSection(Control, VerticalLayout):
     def on_mouse_press(self, x, y, button, modifiers):
         self.is_open = not self.is_open
         self.book.delete()
-        self.book.image_name = self._get_image_name()
+        self.book.path = self._get_image_path()
         if self.is_open:
             self.add(self.folding_content)
         else:

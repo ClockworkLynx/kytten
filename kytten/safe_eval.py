@@ -32,14 +32,17 @@ class SafeEval(object):
     def visitConst(self, node, **kw):
 	return node.value
 
-    def visitDict(self,node,**kw):
+    def visitDict(self, node,**kw):
 	return dict([(self.visit(k),self.visit(v)) for k,v in node.items])
 
-    def visitTuple(self,node, **kw):
+    def visitTuple(self, node, **kw):
 	return tuple(self.visit(i) for i in node.nodes)
 
-    def visitList(self,node, **kw):
+    def visitList(self, node, **kw):
 	return [self.visit(i) for i in node.nodes]
+
+    def visitUnarySub(self, node, **kw):
+	return -self.visit(node.expr)
 
 class SafeEvalWithErrors(SafeEval):
 
@@ -59,7 +62,7 @@ def safe_eval(source, fail_on_error = True):
     try:
 	ast = compiler.parse(source,"eval")
     except SyntaxError, err:
-	raise
+	raise Unsafe_Source_Error(err, source)
     try:
 	return walker.visit(ast)
     except Unsafe_Source_Error, err:

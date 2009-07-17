@@ -14,6 +14,7 @@
 
 import pyglet
 from pyglet import gl
+from override import KyttenLabel
 
 class Widget:
     """
@@ -206,70 +207,6 @@ Control.register_event_type('on_lose_focus')
 Control.register_event_type('on_lose_highlight')
 Control.register_event_type('on_update')
 
-class Test(Widget):
-    """
-    A simple widget which draws a crossed box.
-    """
-    def __init__(self, width, height):
-        """
-        Blocks occupy a fixed width and height.
-
-        @param width Width
-        @param height Height
-        """
-        Widget.__init__(self, width=width, height=height)
-        self.vertex_list = None
-
-    def _get_indices(self):
-        """
-        Defines a square with two crossed diagonals.
-
-        @return An array of indices to update our indexed vertex list.
-        """
-        return (0, 1, 1, 2, 2, 3, 3, 0, 0, 2, 1, 3)
-
-    def _get_vertices(self):
-        """
-        Defines the corners of the square.
-
-        @return An array of coordinates for our indexed vertex list.
-        """
-        x1, y1 = self.x, self.y
-        x2, y2 = x1 + self.width, y1 + self.height
-        return (x1, y1, x2, y1, x2, y2, x1, y2)
-
-    def delete(self):
-        """
-        Deletes our vertex list.
-        """
-        if self.vertex_list is not None:
-            self.vertex_list.delete()
-            self.vertex_list = None
-
-    def layout(self, x, y):
-        """Places the vertex list at the new location.
-
-        @param x X coordinate of our lower left corner
-        @param y Y coordinate of our lower left corner
-        """
-        Widget.layout(self, x, y)
-        self.vertex_list.vertices = self._get_vertices()
-
-    def size(self, dialog):
-        """Constructs a vertex list to draw a crossed square.
-
-        @param dialog The Dialog within which we are contained
-        """
-        if dialog is None:
-            return
-        Widget.size(self, dialog)
-        if self.vertex_list is None:
-            self.vertex_list = dialog.batch.add_indexed(4, gl.GL_LINES,
-                dialog.fg_group,
-                self._get_indices(),
-                ('v2i', self._get_vertices()),
-                ('c4B', dialog.theme['gui_color'] * 4))
-
 class Spacer(Widget):
     """
     A Spacer is an empty widget that expands to fill space in layouts.
@@ -312,10 +249,9 @@ class Graphic(Widget):
     """
     Lays out a graphic from the theme, i.e. part of a title bar.
     """
-    def __init__(self, component, image_name, is_expandable=False):
+    def __init__(self, path, is_expandable=False):
         Widget.__init__(self)
-        self.component = component
-        self.image_name = image_name
+        self.path = path
         self.expandable=is_expandable
         self.graphic = None
         self.min_width = self.min_height = 0
@@ -342,9 +278,9 @@ class Graphic(Widget):
             return
         Widget.size(self, dialog)
         if self.graphic is None:
-            template = dialog.theme[self.component][self.image_name]
+            template = dialog.theme[self.path]['image']
             self.graphic = template.generate(
-                dialog.theme[self.component]['gui_color'],
+                dialog.theme[self.path]['gui_color'],
                 dialog.batch,
                 dialog.fg_group)
             self.min_width = self.graphic.width
@@ -354,7 +290,7 @@ class Graphic(Widget):
 class Label(Widget):
     """A wrapper around a simple text label."""
     def __init__(self, text="", bold=False, italic=False,
-                 font_name=None, font_size=None, color=None, component=None):
+                 font_name=None, font_size=None, color=None, path=[]):
         Widget.__init__(self)
         self.text = text
         self.bold = bold
@@ -362,7 +298,7 @@ class Label(Widget):
         self.font_name = font_name
         self.font_size = font_size
         self.color = color
-        self.component = component
+        self.path = path
         self.label = None
 
     def delete(self):
@@ -381,13 +317,14 @@ class Label(Widget):
             return
         Widget.size(self, dialog)
         if self.label is None:
-            self.label = pyglet.text.Label(
+            self.label = KyttenLabel(
                 self.text, bold=self.bold, italic=self.italic,
-                color=self.color or dialog.theme[self.component]['gui_color'],
+                color=self.color or
+                    dialog.theme[self.path + ['gui_color']],
                 font_name=self.font_name or
-                          dialog.theme[self.component]['font'],
+                          dialog.theme[self.path + ['font']],
                 font_size=self.font_size or
-                          dialog.theme[self.component]['font_size'],
+                          dialog.theme[self.path + ['font_size']],
                 batch=dialog.batch, group=dialog.fg_group)
             font = self.label.document.get_font()
             self.width = self.label.content_width

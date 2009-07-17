@@ -69,6 +69,7 @@ class Document(Control):
         return self.document.text
 
     def layout(self, x, y):
+        self.x, self.y = x, y
         self.content.begin_update()
         self.content.x = x
         self.content.y = y

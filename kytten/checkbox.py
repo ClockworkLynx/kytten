@@ -4,6 +4,7 @@
 import pyglet
 from widgets import Control
 from layout import HALIGN_LEFT, HALIGN_RIGHT
+from override import KyttenLabel
 
 class Checkbox(Control):
     """
@@ -115,34 +116,33 @@ class Checkbox(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
-        if self.is_disabled():
-            color = dialog.theme['checkbox']['disabled_color']
+        if self.is_checked:
+            path = ['checkbox', 'checked']
         else:
-            color = dialog.theme['checkbox']['gui_color']
+            path = ['checkbox', 'unchecked']
+        if self.is_disabled():
+            color = dialog.theme[path]['disabled_color']
+        else:
+            color = dialog.theme[path]['gui_color']
         if self.checkbox is None:
-            if self.is_checked:
-                self.checkbox = dialog.theme['checkbox']['image-checked']\
-                    .generate(color,
-                              dialog.batch, dialog.bg_group)
-            else:
-                self.checkbox = dialog.theme['checkbox']['image'].generate(
-                    color,
-                    dialog.batch, dialog.bg_group)
+            self.checkbox = dialog.theme[path]['image'].generate(
+                color,
+                dialog.batch, dialog.bg_group)
         if self.highlight is None and self.is_highlight():
-            self.highlight = dialog.theme['checkbox']['image-highlight']\
-                .generate(dialog.theme['checkbox']['highlight_color'],
-                         dialog.batch,
-                         dialog.bg_group)
+            self.highlight = dialog.theme[path]['highlight']['image'].generate(
+                    dialog.theme[path]['highlight_color'],
+                    dialog.batch,
+                    dialog.bg_group)
         if self.label is None:
-            self.label = pyglet.text.Label(self.text,
-                font_name=dialog.theme['checkbox']['font'],
-                font_size=dialog.theme['checkbox']['font_size'],
+            self.label = KyttenLabel(self.text,
+                font_name=dialog.theme[path]['font'],
+                font_size=dialog.theme[path]['font_size'],
                 color=color,
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent
         font = self.label.document.get_font()
-        height = font.ascent - font.descent # descent is negative
+        height = font.ascent - font.descent  # descent is negative
         self.width = self.checkbox.width + self.padding + \
             self.label.content_width
         self.height = max(self.checkbox.height, height)

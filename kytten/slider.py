@@ -8,9 +8,9 @@ class Slider(Control):
     """
     A horizontal slider.  Position is measured from 0.0 to 1.0.
     """
-    IMAGE_BAR = ('slider', 'image-bar')
-    IMAGE_KNOB = ('slider', 'image-knob')
-    IMAGE_STEP = ('slider', 'image-step')
+    IMAGE_BAR = ['slider', 'bar']
+    IMAGE_KNOB = ['slider', 'knob']
+    IMAGE_STEP = ['slider', 'step']
 
     def __init__(self, value=0.0, min_value=0.0, max_value=1.0, steps=None,
                  width=100, id=None, on_set=None, disabled=False):
@@ -60,10 +60,10 @@ class Slider(Control):
             self.knob = None
         for marker in self.markers:
             marker.delete()
-        self.step_markers = []
+        self.markers = []
 
     def expand(self, width, height):
-        self.width, self.height = width, height
+        self.width = width
 
     def get_value(self):
         return self.min_value + (self.max_value - self.min_value) * self.pos
@@ -152,24 +152,25 @@ class Slider(Control):
         else:
             color = dialog.theme['slider']['gui_color']
         if self.bar is None:
-            component, image = self.IMAGE_BAR
-            self.bar = dialog.theme[component][image].generate(
+            path = self.IMAGE_BAR
+            self.bar = dialog.theme[path]['image'].generate(
                 color,
                 dialog.batch, dialog.bg_group)
-            self.padding = dialog.theme[component]['padding']
+            self.padding = dialog.theme[path]['padding']
         if self.knob is None:
-            component, image = self.IMAGE_KNOB
-            self.knob = dialog.theme[component][image].generate(
+            path = self.IMAGE_KNOB
+            self.knob = dialog.theme[path]['image'].generate(
                 color,
-                dialog.batch, dialog.fg_group)
-            self.offset = dialog.theme[component]['offset']
+                dialog.batch, dialog.highlight_group)
+            self.offset = dialog.theme[path]['offset']
         if not self.markers and self.steps is not None:
-            component, image = self.IMAGE_STEP
+            path = self.IMAGE_STEP
             for n in xrange(0, self.steps + 1):
-                self.markers.append(dialog.theme[component][image].generate(
-                    color,
-                    dialog.batch, dialog.bg_group))
-            self.step_offset = dialog.theme[component]['step-offset']
+                self.markers.append(
+                    dialog.theme[path]['image'].generate(
+                        color,
+                        dialog.batch, dialog.fg_group))
+            self.step_offset = dialog.theme[path]['offset']
         width, height = self.bar.get_needed_size(self.min_width, 0)
         left, right, top, bottom = self.padding
         self.width = width + left + right

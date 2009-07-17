@@ -314,8 +314,8 @@ class GridLayout(Widget):
         @param anchor Alignment of
         """
         assert ((isinstance(content, list) or isinstance(content, tuple)) and
-                (isinstance(content[0], list) or
-                 isinstance(content[0], tuple)))
+                (len(content) == 0 or (isinstance(content[0], list) or
+                                       isinstance(content[0], tuple))))
         Widget.__init__(self)
         self.content = content
         self.anchor = anchor
@@ -335,12 +335,53 @@ class GridLayout(Widget):
                     controls += cell._get_controls()
         return controls
 
+    def add_row(self, row):
+        """
+        Adds a new row to the layout
+
+        @param row An array of widgets, or None for cells without widgets
+        """
+        assert isinstance(row, tuple) or isinstance(row, list)
+        self.content.append(row)
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
+
     def delete(self):
         """Deletes all graphic elements within the layout."""
         for row in self.content:
             for cell in row:
                 cell.delete()
         Widget.delete(self)
+
+    def delete_row(self, row):
+        """
+        Deletes a row from the layout
+
+        @param row Index of row
+        """
+        if len(self.content) <= row:
+            return
+        row = self.content.pop(row)
+        for column in row:
+            if column is not None:
+                column.delete()
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
+
+    def get(self, column, row):
+        """
+        Returns the widget located at a given column and row, or None.
+
+        @param column Column of cell
+        @param row Row of cell
+        """
+        if row >= len(self.content):
+            return None
+        row = self.content[row]
+        if column >= len(row):
+            return None
+        else:
+            return row[column]
 
     def layout(self, x, y):
         """
@@ -379,11 +420,12 @@ class GridLayout(Widget):
         @param row The row of the cell to be set
         @param item The new Widget to be set in that cell
         """
-        if len(self.content) < row:
-            self.content = list(self.content) + [] * (row - len(self.content))
-        if len(self.content[row]) < column:
+        if len(self.content) <= row:
+            self.content = list(self.content) + \
+                           [] * (row - len(self.content) + 1)
+        if len(self.content[row]) <= column:
             self.content[row] = list(self.content[row]) + \
-                [None] * (column - len(self.content[row]))
+                [None] * (column - len(self.content[row]) + 1)
         if self.content[row][column] is not None:
             self.content[row][column].delete()
         self.content[row][column] = item
@@ -420,10 +462,16 @@ class GridLayout(Widget):
                 col_index += 1
             self.max_heights[row_index] = max_height
             row_index += 1
-        self.width = reduce(lambda x, y: x + y, self.max_widths) \
-                   - self.padding
-        self.height = reduce(lambda x, y: x + y, self.max_heights) \
-                    - self.padding
+        if self.max_widths:
+            self.width = reduce(lambda x, y: x + y, self.max_widths) \
+                - self.padding
+        else:
+            self.width = 0
+        if self.max_heights:
+            self.height = reduce(lambda x, y: x + y, self.max_heights) \
+                - self.padding
+        else:
+            self.height = 0
 
     def teardown(self):
         for row in self.content:

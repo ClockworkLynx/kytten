@@ -10,6 +10,7 @@ from layout import GetRelativePoint, VerticalLayout
 from layout import ANCHOR_CENTER, ANCHOR_TOP_LEFT, ANCHOR_BOTTOM_LEFT
 from layout import HALIGN_CENTER
 from layout import VALIGN_TOP, VALIGN_CENTER, VALIGN_BOTTOM
+from override import KyttenLabel
 from scrollable import Scrollable
 
 class MenuOption(Control):
@@ -91,27 +92,21 @@ class MenuOption(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
+        if self.is_selected:
+            path = ['menuoption', 'selection']
+        else:
+            path = ['menuoption']
         if self.label is None:
-            if self.is_selected:
-                self.label = pyglet.text.Label(self.text,
-                    color=dialog.theme['menuoption']
-                                      ['selection']
-                                      ['text_color'],
-                    font_name=dialog.theme['font'],
-                    font_size=dialog.theme['font_size'],
-                    batch=dialog.batch,
-                    group=dialog.fg_group)
+            if self.is_disabled():
+                color = dialog.theme[path]['disabled_color']
             else:
-                if self.is_disabled():
-                    color = dialog.theme['menuoption']['disabled_color']
-                else:
-                    color = dialog.theme['menuoption']['text_color']
-                self.label = pyglet.text.Label(self.text,
-                    color=color,
-                    font_name=dialog.theme['font'],
-                    font_size=dialog.theme['font_size'],
-                    batch=dialog.batch,
-                    group=dialog.fg_group)
+                color = dialog.theme[path]['text_color']
+            self.label = KyttenLabel(self.text,
+                color=color,
+                font_name=dialog.theme[path]['font'],
+                font_size=dialog.theme[path]['font_size'],
+                batch=dialog.batch,
+                group=dialog.fg_group)
             font = self.label.document.get_font()
             self.width = self.label.content_width
             self.height = font.ascent - font.descent
@@ -119,19 +114,17 @@ class MenuOption(Control):
         if self.background is None:
             if self.is_selected:
                 self.background = \
-                    dialog.theme['menuoption']['image-highlight'].\
-                        generate(dialog.theme['menuoption']
-                                             ['selection']
-                                             ['gui_color'],
-                                 dialog.batch,
-                                 dialog.bg_group)
+                    dialog.theme[path]['highlight']['image'].generate(
+                        dialog.theme[path]['gui_color'],
+                        dialog.batch,
+                        dialog.bg_group)
         if self.highlight is None:
             if self.is_highlight():
                 self.highlight = \
-                    dialog.theme['menuoption']['image-highlight'].\
-                        generate(dialog.theme['menuoption']['highlight_color'],
-                                 dialog.batch,
-                                 dialog.highlight_group)
+                    dialog.theme[path]['highlight']['image'].generate(
+                        dialog.theme[path]['highlight_color'],
+                        dialog.batch,
+                        dialog.highlight_group)
 
     def unselect(self):
         self.is_selected = False
@@ -294,7 +287,7 @@ class Dropdown(Control):
             Frame(
                 Scrollable(Menu(options=self.options, on_select=on_select),
                            height=self.max_height),
-                component='pulldown'
+                path=['dropdown', 'pulldown']
             ),
             window=root.window, batch=root.batch,
             group=root.root_group.parent, theme=root.theme,
@@ -334,7 +327,7 @@ class Dropdown(Control):
                 color,
                 dialog.batch, dialog.bg_group)
         if self.label is None:
-            self.label = pyglet.text.Label(self.selected,
+            self.label = KyttenLabel(self.selected,
                 font_name=dialog.theme['dropdown']['font'],
                 font_size=dialog.theme['dropdown']['font_size'],
                 color=dialog.theme['dropdown']['text_color'],

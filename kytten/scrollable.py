@@ -127,6 +127,10 @@ class Scrollable(Wrapper):
             self.vscrollbar.delete()
             self.vscrollbar = None
         self.root_group = None
+        self.panel_group = None
+        self.bg_group = None
+        self.fg_group = None
+        self.highlight_group = None
 
     def ensure_visible(self, control):
         """
@@ -260,9 +264,9 @@ class Scrollable(Wrapper):
             self.width, self.height = self.max_width, self.max_height
 
         self.hscrollbar_height = \
-            dialog.theme['hscrollbar']['image-left'].height
+            dialog.theme['hscrollbar']['left']['image'].height
         self.vscrollbar_width = \
-            dialog.theme['vscrollbar']['image-up'].width
+            dialog.theme['vscrollbar']['up']['image'].width
 
         if self.root_group is None: # do we need to re-clone dialog groups?
             self.theme = dialog.theme

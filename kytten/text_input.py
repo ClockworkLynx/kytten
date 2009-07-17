@@ -128,12 +128,12 @@ class Input(Control):
                 self.highlight = None
 
     def set_highlight(self):
+        path = ['input', 'highlight']
         if self.highlight is None:
-            self.highlight = self.saved_dialog.theme['input']\
-                ['image-highlight'].generate(
-                    color=self.saved_dialog.theme['highlight_color'],
-                    batch=self.saved_dialog.batch,
-                    group=self.saved_dialog.highlight_group)
+            self.highlight = self.saved_dialog.theme[path]['image'].generate(
+                color=self.saved_dialog.theme[path]['highlight_color'],
+                batch=self.saved_dialog.batch,
+                group=self.saved_dialog.highlight_group)
             self.highlight.update(self.x, self.y, self.width, self.height)
 
     def size(self, dialog):
@@ -145,9 +145,9 @@ class Input(Control):
         # it's an UnformattedDocument.
         if not self.document_style_set:
             if self.is_disabled():
-                color = dialog.theme['disabled_color']
+                color = dialog.theme['input']['disabled_color']
             else:
-                color = dialog.theme['text_color']
+                color = dialog.theme['input']['text_color']
             self.document.set_style(0, len(self.document.text),
                                     dict(color=color,
                                          font_name=dialog.theme['font'],
@@ -169,13 +169,14 @@ class Input(Control):
                 batch=dialog.batch, group=dialog.fg_group)
         if self.caret is None:
             self.caret = pyglet.text.caret.Caret(
-                self.text_layout, color=dialog.theme['gui_color'][0:3])
+                self.text_layout,
+                color=dialog.theme['input']['gui_color'][0:3])
             self.caret.visible = False
         if self.field is None:
             if self.is_disabled():
-                color = dialog.theme['disabled_color']
+                color = dialog.theme['input']['disabled_color']
             else:
-                color = dialog.theme['gui_color']
+                color = dialog.theme['input']['gui_color']
             self.field = dialog.theme['input']['image'].generate(
                 color=color,
                 batch=dialog.batch,

@@ -3,6 +3,7 @@
 
 import pyglet
 from widgets import Control
+from override import KyttenLabel
 
 class Button(Control):
     """
@@ -100,33 +101,28 @@ class Button(Control):
         if dialog is None:
             return
         Control.size(self, dialog)
-        if self.is_disabled():
-            color = dialog.theme['button']['disabled_color']
+        if self.is_pressed:
+            path = ['button', 'down']
         else:
-            color = dialog.theme['button']['gui_color']
+            path = ['button', 'up']
+        if self.is_disabled():
+            color = dialog.theme[path]['disabled_color']
+        else:
+            color = dialog.theme[path]['gui_color']
         if self.button is None:
-            if self.is_pressed:
-                self.button = dialog.theme['button']['image-down'].generate(
-                    color,
-                    dialog.batch, dialog.bg_group)
-            else:
-                self.button = dialog.theme['button']['image'].generate(
-                    color,
-                    dialog.batch, dialog.bg_group)
+            self.button = dialog.theme[path]['image'].generate(
+                color,
+                dialog.batch, dialog.bg_group)
         if self.highlight is None and self.is_highlight():
-            self.highlight = dialog.theme['button']['image-highlight'].\
-                generate(dialog.theme['button']['highlight_color'],
+            self.highlight = dialog.theme[path]['highlight']['image'].\
+                generate(dialog.theme[path]['highlight_color'],
                          dialog.batch,
                          dialog.bg_group)
         if self.label is None:
-            if self.is_pressed:
-                button_type = 'down'
-            else:
-                button_type = 'up'
-            self.label = pyglet.text.Label(self.text,
-                font_name=dialog.theme['button'][button_type]['font'],
-                font_size=dialog.theme['button'][button_type]['font_size'],
-                color=color,
+            self.label = KyttenLabel(self.text,
+                font_name=dialog.theme[path]['font'],
+                font_size=dialog.theme[path]['font_size'],
+                color=dialog.theme[path]['text_color'],
                 batch=dialog.batch, group=dialog.fg_group)
 
         # Treat the height of the label as ascent + descent
