@@ -306,7 +306,7 @@ class ImageRegionPlacer(Control):
 	elif self.corner == kytten.ANCHOR_LEFT:  # stretch left only
 	    x = min(x + dx, x + width)
 	    width = right - x
-	elif self.corner == kytten.ANCHOR_BOTTOM_LEFT:  # stretch down and left
+	elif self.corner == kytten.ANCHOR_BOTTOM_LEFT:  # down and left
 	    x = min(x + dx, right)
 	    y = min(y + dy, top)
 	    width = right - x
@@ -321,29 +321,14 @@ class ImageRegionPlacer(Control):
 	    height = max(height + dy, 0)
 	elif self.corner == kytten.ANCHOR_RIGHT:  # stretch right only
 	    width = max(width + dx, 0)
-	elif self.corner == kytten.ANCHOR_BOTTOM_RIGHT:  # stretch down/right
+	elif self.corner == kytten.ANCHOR_BOTTOM_RIGHT:  # down and right
 	    y = min(y + dy, top)
 	    width = max(width + dx, 0)
 	    height = top - y
 	else:  # center or no corner set, drag the whole square!
 	    x += dx
 	    y += dy
-	if self.limits is None:
-	    left_limit = bottom_limit = 0
-	    right_limit, top_limit = self.texture.width, self.texture.height
-	else:
-	    lx, ly, lwidth, lheight = self.limits
-	    left_limit = lx
-	    bottom_limit = ly
-	    right_limit = left_limit + lwidth
-	    top_limit = bottom_limit + lheight
-	x = min(max(x, left_limit), right_limit)
-	y = min(max(y, bottom_limit), top_limit)
-	width = min(width, right_limit - x)
-	height = min(height, top_limit - y)
-	self.region = [x, y, width, height]
-	if self.resizer_vlist is not None:
-	    self.resizer_vlist.vertices = self._get_resizer_vertices()
+	self.set_region(x, y, width, height, self.color, self.limits)
 
     def on_mouse_press(self, x, y, button, modifiers):
 	self.is_dragging = True
@@ -386,16 +371,30 @@ class ImageRegionPlacer(Control):
     def on_mouse_release(self, x, y, button, modifiers):
 	self.is_dragging = False
 	x, y, width, height = self.region
-	self.region = [int(x), int(y), int(width), int(height)]
+	self.region = [int(x + 0.5), int(y + 0.5),
+		       int(width + 0.5), int(height + 0.5)]
 	if self.resizer_vlist is not None:
 	    self.resizer_vlist.vertices = self._get_resizer_vertices()
 	if self.on_resize is not None:
 	    self.on_resize(*self.region)
 
     def set_region(self, x, y, width, height, color, limits=None):
-	self.region = [x, y, width, height]
 	self.limits = limits
 	self.color = color
+	if self.limits is None:
+	    left_limit = bottom_limit = 0
+	    right_limit, top_limit = self.texture.width, self.texture.height
+	else:
+	    lx, ly, lwidth, lheight = self.limits
+	    left_limit = lx
+	    bottom_limit = ly
+	    right_limit = left_limit + lwidth
+	    top_limit = bottom_limit + lheight
+	x = min(max(x, left_limit), right_limit)
+	y = min(max(y, bottom_limit), top_limit)
+	width = min(width, right_limit - x)
+	height = min(height, top_limit - y)
+	self.region = [x, y, width, height]
 	if self.resizer_vlist is not None:
 	    self.resizer_vlist.vertices = self._get_resizer_vertices()
 	    self.resizer_vlist.colors = color * 40
@@ -1132,7 +1131,31 @@ Image: %s
 	    gDirty = True
 
 	    if self.state == 'Region':
+		# Try to keep stretch area the same but restrict it to
+		# the current available region
+		ox, oy, _, _ = self.region
+		sx, sy, swidth, sheight = self.stretch
+		sx += ox
+		sy += oy
+		if sx < x:
+		    swidth = max(0, swidth - x + sx)
+		    sx = x
+		elif sx > x + width:
+		    swidth = 0
+		    sx = x + width
+		if sy < y:
+		    sheight = max(0, sheight - y + sy)
+		    sy = y
+		elif sy > y + height:
+		    sheight = 0
+		    sy = y + height
+		if (sx - x) + swidth > width:
+		    swidth = max(0, width - (sx - x))
+		if (sy - y) + sheight > height:
+		    sheight = max(0, height - (sy - y))
+
 		self.region = (x, y, width, height)
+		self.stretch = (sx - x, sy - y, swidth, sheight)
 	    elif self.state == 'Stretch':
 		rx, ry, rwidth, rheight = self.region
 		self.stretch = (x - rx, y - ry, width, height)

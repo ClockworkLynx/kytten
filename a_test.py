@@ -9,6 +9,8 @@ import pyglet
 pyglet.options['debug_gl'] = False
 from pyglet import gl
 
+VERSION = '5.8.1'
+
 import kytten
 from background import Background
 
@@ -78,7 +80,7 @@ def create_form_dialog():
 		    kytten.Document("Try tabbing through fields, "
 				    "if offscreen they'll be moved "
 				    "automatically",
-				    width=350),
+				    width=500),
 		    kytten.GridLayout([
 			[kytten.Label("Name"), kytten.Input("name", "Lynx")],
 			[kytten.Label("Job"), kytten.Input("job", "Cat")],
@@ -277,7 +279,8 @@ def on_select(choice):
 
 if __name__ == '__main__':
     window = pyglet.window.Window(
-	640, 480, caption='Kytten Test', resizable=True, vsync=False)
+	640, 480, caption='Kytten Test %s' % VERSION,
+	resizable=True, vsync=False)
     batch = pyglet.graphics.Batch()
     bg_group = pyglet.graphics.OrderedGroup(0)
     fg_group = pyglet.graphics.OrderedGroup(1)

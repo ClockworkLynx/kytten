@@ -36,6 +36,35 @@ class KyttenLabel(pyglet.text.Label):
         self.top_group, self.background_group, self.foreground_group, \
             self.foreground_decoration_group = GetKyttenLayoutGroups(group)
 
+    def _update(self):
+        pyglet.text.Label._update(self)
+
+        # Iterate through our vertex lists and break if we need to clip
+        remove = []
+        if self.width:
+            right = self.x + self.width
+            for vlist in self._vertex_lists:
+                num_quads = len(vlist.vertices) / 8
+                has_quads = False
+                for n in xrange(0, num_quads):
+                    x1, y1, x2, y2, x3, y3, x4, y4 = vlist.vertices[n*8:n*8+8]
+                    if x1 <= right:
+                        has_quads = True
+                        if x2 > right:
+                            x2 = min(right, x2)
+                            x3 = min(right, x3)
+                            vlist.vertices[n*8:n*8+8] = \
+                                [x1, y1, x2, y2, x3, y3, x4, y4]
+                    else:
+                        if n == 0:
+                            remove.append(vlist)
+                        else:
+                            vlist.resize(n * 4)
+                        break
+        for vlist in remove:
+            vlist.remove()
+            self._vertex_lists.delete(vlist)
+
     def teardown(self):
         pyglet.text.Label.teardown(self)
         group = self.top_group.parent
