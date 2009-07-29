@@ -48,13 +48,21 @@ class KyttenLabel(pyglet.text.Label):
                 has_quads = False
                 for n in xrange(0, num_quads):
                     x1, y1, x2, y2, x3, y3, x4, y4 = vlist.vertices[n*8:n*8+8]
-                    if x1 <= right:
+                    if x1 < right:
                         has_quads = True
                         if x2 > right:
-                            x2 = min(right, x2)
-                            x3 = min(right, x3)
+                            percent = (float(right) - float(x1)) / \
+                                      (float(x2) - float(x1))
+                            x3 = x2 = min(right, x2)
                             vlist.vertices[n*8:n*8+8] = \
                                 [x1, y1, x2, y2, x3, y3, x4, y4]
+                            tx1, ty1, tz1, tx2, ty2, tz2, \
+                               tx3, ty3, tz3, tx4, ty4, tz4 = \
+                               vlist.tex_coords[n*12:n*12+12]
+                            tx3 = tx2 = (tx2 - tx1) * percent + tx1
+                            vlist.tex_coords[n*12:n*12+12] = \
+                                 [tx1, ty1, tz1, tx2, ty2, tz2,
+                                  tx3, ty3, tz3, tx4, ty4, tz4]
                     else:
                         if n == 0:
                             remove.append(vlist)

@@ -9,7 +9,7 @@ import pyglet
 pyglet.options['debug_gl'] = False
 from pyglet import gl
 
-VERSION = '5.8.1'
+VERSION = '5.9'
 
 import kytten
 from background import Background
@@ -82,8 +82,10 @@ def create_form_dialog():
 				    "automatically",
 				    width=500),
 		    kytten.GridLayout([
-			[kytten.Label("Name"), kytten.Input("name", "Lynx")],
-			[kytten.Label("Job"), kytten.Input("job", "Cat")],
+			[kytten.Label("Name"), kytten.Input("name", "Lynx",
+							    max_length=20)],
+			[kytten.Label("Job"), kytten.Input("job", "Cat",
+							   max_length=80)],
 			[kytten.Label("Hobby"),
 			     kytten.Input("hobby", "Programming")],
 			[kytten.Label("Class"),

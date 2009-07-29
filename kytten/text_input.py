@@ -7,11 +7,12 @@ from override import KyttenLabel
 
 class Input(Control):
     """A text input field."""
-    def __init__(self, id=None, text="", length=20, padding=0,
+    def __init__(self, id=None, text="", length=20, max_length=None, padding=0,
                  on_input=None, disabled=False):
         Control.__init__(self, id=id, disabled=disabled)
         self.text = text
         self.length = length
+        self.max_length = max_length
         self.padding = padding
         self.on_input = on_input
         self.document = pyglet.text.document.UnformattedDocument(text)
@@ -123,6 +124,9 @@ class Input(Control):
     def on_text(self, text):
         if not self.is_disabled() and self.caret:
             self.caret.on_text(text)
+            if self.max_length and len(self.document.text) > self.max_length:
+                self.document.text = self.document.text[:self.max_length]
+                self.caret.mark = self.caret.position = self.max_length
 
     def on_text_motion(self, motion):
         if not self.is_disabled() and self.caret:
