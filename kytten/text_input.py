@@ -3,7 +3,7 @@
 
 import pyglet
 from widgets import Control
-from override import KyttenLabel
+from override import KyttenInputLabel
 
 class Input(Control):
     """A text input field."""
@@ -202,12 +202,12 @@ class Input(Control):
                 self.caret.position = len(self.document.text)
         else:
             if self.label is None:
-                self.label = KyttenLabel(self.document.text,
-                                         multiline=False,
-                                         width=self.width - self.padding*2,
-                                         color=color,
-                                         batch=dialog.batch,
-                                         group=dialog.fg_group)
+                self.label = KyttenInputLabel(self.document.text,
+                                              multiline=False,
+                                              width=self.width-self.padding*2,
+                                              color=color,
+                                              batch=dialog.batch,
+                                              group=dialog.fg_group)
             assert self.text_layout is None and self.caret is None
         if self.field is None:
             if self.is_disabled():
