@@ -43,9 +43,10 @@ class Document(Control):
         self.document.set_style(0, terminator, {attr: value})
 
     def _get_controls(self):
-        controls = Control._get_controls(self)
+        controls = []
         if self.scrollbar:
             controls += self.scrollbar._get_controls()
+        controls += Control._get_controls(self)
         return controls
 
     def delete(self):

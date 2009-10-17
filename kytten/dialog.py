@@ -43,7 +43,10 @@ class DialogEventManager(Control):
 
     def hit_control(self, x, y, control):
         left, right, top, bottom = self.control_areas[control]
-        return x >= left and x < right and y >= bottom and y < top
+        if x >= left and x < right and y >= bottom and y < top:
+            return control.hit_test(x, y)
+        else:
+            return False
 
     def on_key_press(self, symbol, modifiers):
         """

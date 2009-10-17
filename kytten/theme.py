@@ -1,6 +1,8 @@
 # kytten/theme.py
 # Copyrighted (C) 2009 by Conrad "Lynx" Wong
 
+import os
+
 import pyglet
 from pyglet import gl
 
@@ -74,7 +76,7 @@ class TextureGraphicElementTemplate(UndefinedGraphicElementTemplate):
 	f.write(' ' * (indent + 2) + '"src": "%s"' % self.texture.src)
 	if hasattr(self.texture, 'region'):
 	    f.write(',\n' + ' ' * (indent + 2) + '"region": %s' %
-		    repr(self.texture.region))
+		    repr(list(self.texture.region)))
 	f.write('\n' + ' ' * indent + '}')
 
 class FrameTextureGraphicElementTemplate(TextureGraphicElementTemplate):
@@ -98,16 +100,16 @@ class FrameTextureGraphicElementTemplate(TextureGraphicElementTemplate):
 	f.write(' ' * (indent + 2) + '"src": "%s"' % self.texture.src)
 	if hasattr(self.texture, 'region'):
 	    f.write(',\n' + ' ' * (indent + 2) + '"region": %s' %
-		    repr(self.texture.region))
+		    repr(list(self.texture.region)))
 	left, right, top, bottom = self.margins
 	if left != 0 or right != 0 or top != 0 or bottom != 0 or \
 	   self.padding != [0, 0, 0, 0]:
 	    stretch = [left, bottom,
 		       self.width - right - left, self.height - top - bottom]
 	    f.write(',\n' + ' ' * (indent + 2) + '"stretch": %s' %
-		    repr(stretch))
+		    repr(list(stretch)))
 	    f.write(',\n' + ' ' * (indent + 2) + '"padding": %s' %
-		    repr(self.padding))
+		    repr(list(self.padding)))
 	f.write('\n' + ' ' * indent + '}')
 
 class TextureGraphicElement:
@@ -322,6 +324,8 @@ class ScopedDict(dict):
 		v.write(f, indent + 2)
 	    elif isinstance(v, basestring):
 		f.write('"%s"' % v)
+	    elif isinstance(v, tuple):
+		f.write('%s' % repr(list(v)))
 	    else:
 		f.write(repr(v))
 	f.write('\n')
@@ -360,15 +364,18 @@ class Theme(ScopedDict):
 	    return
 
 	if isinstance(arg, dict):
-	    self.laoder = pyglet.resource.Loader(os.getcwd())
+	    self.loader = pyglet.resource.Loader(os.getcwd())
 	    input = arg
 	else:
-	    self.loader = pyglet.resource.Loader(path=arg)
-	    try:
-		theme_file = self.loader.file(name)
-		input = json_load(theme_file.read())
-		theme_file.close()
-	    except pyglet.resource.ResourceNotFoundException:
+	    if os.path.isfile(arg) or os.path.isdir(arg):
+		self.loader = pyglet.resource.Loader(path=arg)
+		try:
+		    theme_file = self.loader.file(name)
+		    input = json_load(theme_file.read())
+		    theme_file.close()
+		except pyglet.resource.ResourceNotFoundException:
+		    input = {}
+	    else:
 		input = {}
 
 	self.textures = {}

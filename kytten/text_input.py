@@ -46,8 +46,8 @@ class Input(Control):
         Control.disable(self)
         self.document_style_set = False
 
-    def ensable(self):
-        Control.disable(self)
+    def enable(self):
+        Control.enable(self)
         self.document_style_set = False
 
     def get_text(self):
