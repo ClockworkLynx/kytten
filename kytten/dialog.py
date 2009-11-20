@@ -122,7 +122,7 @@ class DialogEventManager(Control):
         @param dx Delta X
         @param dy Delta Y
         """
-        if self.hover is not None and self.hit_control(x, y, self.hover):
+        if self.hover is not None and not self.hit_control(x, y, self.hover):
             self.hover.dispatch_event('on_mouse_motion', x, y, dx, dy)
         new_hover = None
         for control in self.controls:
@@ -200,15 +200,24 @@ class DialogEventManager(Control):
 
     def on_text(self, text):
         if self.focus and text != u'\r':
-            self.focus.dispatch_event('on_text', text)
+            try:
+                return getattr(self.focus, 'on_text')(text)
+            except KeyError:
+                return pyglet.event.EVENT_UNHANDLED
 
     def on_text_motion(self, motion):
         if self.focus:
-            self.focus.dispatch_event('on_text_motion', motion)
+            try:
+                return getattr(self.focus, 'on_text_motion')(motion)
+            except KeyError:
+                return pyglet.event.EVENT_UNHANDLED
 
     def on_text_motion_select(self, motion):
         if self.focus:
-            self.focus.dispatch_event('on_text_motion_select', motion)
+            try:
+                return getattr(self.focus, 'on_text_motion_select')(motion)
+            except KeyError:
+                return pyglet.event.EVENT_UNHANDLED
 
     def on_update(self, dt):
         """

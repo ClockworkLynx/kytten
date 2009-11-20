@@ -88,6 +88,24 @@
       }
     }
   },
+  "colorselector": {
+    "swatch": {
+      "image": {
+        "src": "colorswatch.png",
+        "region": [0, 0, 26, 26],
+        "stretch": [5, 5, 16, 16],
+        "padding": [5, 5, 5, 5]
+      }
+    },
+    "crosshair": {
+      "image": {
+        "src": "crosshair.png",
+        "region": [0, 0, 16, 16],
+        "stretch": [8, 8, 0, 0],
+        "padding": [8, 8, 8, 8]
+      }
+    }
+  },
   "text_color": [255, 255, 255, 255],
   "hscrollbar": {
     "leftmax": {
@@ -102,10 +120,12 @@
         "region": [32, 0, 16, 16]
       }
     },
-    "rightmax": {
+    "bar": {
       "image": {
         "src": "hscrollbar.png",
-        "region": [80, 0, 16, 16]
+        "region": [64, 0, 16, 16],
+        "stretch": [6, 0, 4, 16],
+        "padding": [0, 0, 0, 0]
       }
     },
     "space": {
@@ -114,12 +134,10 @@
         "region": [16, 0, 16, 16]
       }
     },
-    "bar": {
+    "rightmax": {
       "image": {
         "src": "hscrollbar.png",
-        "region": [64, 0, 16, 16],
-        "stretch": [6, 0, 4, 16],
-        "padding": [0, 0, 0, 0]
+        "region": [80, 0, 16, 16]
       }
     },
     "left": {
@@ -158,43 +176,6 @@
       "padding": [16, 16, 16, 16]
     }
   },
-  "section": {
-    "right": {
-      "image": {
-        "src": "line.png",
-        "region": [2, 0, 6, 4],
-        "stretch": [0, 4, 4, 0],
-        "padding": [0, 0, 0, 6]
-      }
-    },
-    "font_size": 14,
-    "opened": {
-      "image": {
-        "src": "book-open.png"
-      }
-    },
-    "closed": {
-      "image": {
-        "src": "book.png"
-      }
-    },
-    "left": {
-      "image": {
-        "src": "line.png",
-        "region": [0, 0, 6, 4],
-        "stretch": [2, 4, 4, 0],
-        "padding": [0, 0, 0, 6]
-      }
-    },
-    "center": {
-      "image": {
-        "src": "line.png",
-        "region": [2, 0, 4, 4],
-        "stretch": [0, 4, 4, 0],
-        "padding": [0, 0, 0, 6]
-      }
-    }
-  },
   "input": {
     "highlight": {
       "image": {
@@ -218,6 +199,65 @@
     "selection": {
       "gui_color": [255, 255, 255, 255],
       "text_color": [0, 0, 0, 255]
+    }
+  },
+  "section": {
+    "right": {
+      "image": {
+        "src": "line.png",
+        "region": [2, 0, 6, 4],
+        "stretch": [0, 4, 4, 0],
+        "padding": [0, 0, 0, 6]
+      }
+    },
+    "font_size": 14,
+    "center": {
+      "image": {
+        "src": "line.png",
+        "region": [2, 0, 4, 4],
+        "stretch": [0, 4, 4, 0],
+        "padding": [0, 0, 0, 6]
+      }
+    },
+    "closed": {
+      "image": {
+        "src": "book.png"
+      }
+    },
+    "left": {
+      "image": {
+        "src": "line.png",
+        "region": [0, 0, 6, 4],
+        "stretch": [2, 4, 4, 0],
+        "padding": [0, 0, 0, 6]
+      }
+    },
+    "opened": {
+      "image": {
+        "src": "book-open.png"
+      }
+    }
+  },
+  "slider": {
+    "knob": {
+      "image": {
+        "src": "slider-knob.png"
+      },
+      "offset": [-5, -11]
+    },
+    "padding": [8, 8, 8, 8],
+    "step": {
+      "image": {
+        "src": "slider-step.png"
+      },
+      "offset": [-2, -8]
+    },
+    "bar": {
+      "image": {
+        "src": "slider-bar.png",
+        "stretch": [8, 8, 8, 0],
+        "padding": [8, 8, 8, 8]
+      }
     }
   },
   "titlebar": {
@@ -252,28 +292,6 @@
         "region": [0, 32, 28, 48],
         "stretch": [16, 16, 12, 32],
         "padding": [0, 0, 0, 0]
-      }
-    }
-  },
-  "slider": {
-    "knob": {
-      "image": {
-        "src": "slider-knob.png"
-      },
-      "offset": [-5, -11]
-    },
-    "padding": [8, 8, 8, 8],
-    "step": {
-      "image": {
-        "src": "slider-step.png"
-      },
-      "offset": [-2, -8]
-    },
-    "bar": {
-      "image": {
-        "src": "slider-bar.png",
-        "stretch": [8, 8, 8, 0],
-        "padding": [8, 8, 8, 8]
       }
     }
   }

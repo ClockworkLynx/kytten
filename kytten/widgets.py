@@ -312,6 +312,12 @@ class Label(Widget):
         self.label.x = x
         self.label.y = y - font.descent
 
+    def set_text(self, text):
+        self.text = text
+        self.delete()
+        if self.saved_dialog is not None:
+            self.saved_dialog.set_needs_layout()
+
     def size(self, dialog):
         if dialog is None:
             return

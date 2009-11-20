@@ -127,6 +127,7 @@ class Input(Control):
             if self.max_length and len(self.document.text) > self.max_length:
                 self.document.text = self.document.text[:self.max_length]
                 self.caret.mark = self.caret.position = self.max_length
+            return pyglet.event.EVENT_HANDLED
 
     def on_text_motion(self, motion):
         if not self.is_disabled() and self.caret:
@@ -135,13 +136,6 @@ class Input(Control):
     def on_text_motion_select(self, motion):
         if not self.is_disabled() and self.caret:
             return self.caret.on_text_motion_select(motion)
-
-    def set_text(self, text):
-        self.document.text = text
-        if self.caret:
-            self.caret.mark = self.caret.position = len(self.document.text)
-        elif self.label:
-            self.label.text = text
 
     def remove_highlight(self):
         if not self.is_highlight() and not self.is_focus():
@@ -157,6 +151,13 @@ class Input(Control):
                 batch=self.saved_dialog.batch,
                 group=self.saved_dialog.highlight_group)
             self.highlight.update(self.x, self.y, self.width, self.height)
+
+    def set_text(self, text):
+        self.document.text = text
+        if self.caret:
+            self.caret.mark = self.caret.position = len(self.document.text)
+        elif self.label:
+            self.label.text = text
 
     def size(self, dialog):
         if dialog is None:
